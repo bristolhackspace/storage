@@ -1,0 +1,293 @@
+:root {
+    --bg-color: #fff;
+    --bg-secondary-color: #f6f5f3;
+    --color-primary: #f08818;
+    --color-error: #d3503f;
+    --color-success: #59be16;
+    --font-size: 1.8rem;
+    --font-color: #2c2c2c;
+    --font-family-sans: -apple-system, "BlinkMacSystemFont", "Avenir",
+    "Avenir Next", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",
+    "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    --header-font: "ocr-a-extended", sans-serif;
+    --grid-maxWidth: 100rem;
+    --grid-gutter: 2rem;
+    --col-gap: 0.8rem;
+    --row-gap: 1.0rem;
+    --border-width: 0.1rem;
+    --border-color: #bebdbb;
+    --border-color-active: var(--color-primary);
+    --border-radius: 0.4rem;
+    --button-color: #dfdbd2;
+    --button-hover-color: #c5c2ba;
+}
+
+@font-face {
+    font-family: 'ocr-a-extended';
+    src: url('OCRAExtended.woff2') format('woff2'),
+        url('OCRAExtended.woff') format('woff');
+      font-display: auto;
+}
+
+html {
+    box-sizing: border-box;
+    font-size: 62.5%;
+    line-height: 1.15;
+    text-size-adjust: 100%;
+}
+
+*, *::before, *::after {
+    box-sizing: inherit;
+}
+
+button, input, optgroup, select, textarea {
+    font-family: inherit;
+    font-size: 100%;
+    line-height: 1.15;
+    margin: 0;
+    margin-bottom: 0px;
+}
+
+body {
+    background-color: var(--bg-color);
+    line-height: 1.6;
+    font-size: var(--font-size);
+    color: var(--font-color);
+    font-family: "Segoe UI", "Helvetica Neue", sans-serif; /* fallback */
+    font-family: var(--font-family-sans);
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 500;
+    margin: 0.35em 0 0.7em;
+}
+
+p, dt, dd, dl {
+    margin: var(--row-gap) 0;
+}
+
+dt {
+    font-weight: bold;
+}
+
+dd {
+    margin-left: 1.5rem;
+}
+
+
+.header {
+    background-color: var(--bg-secondary-color);
+    width: 100%;
+}
+
+.main {
+    margin-bottom: 5rem;
+}
+
+.footer {
+    background-color: var(--bg-secondary-color);
+    width: 100%;
+    padding: 1rem 0 5rem 0;
+    text-align: center;
+}
+
+.container {
+    max-width: var(--grid-maxWidth);
+    margin: 0 auto;
+    width: 96%;
+    padding: 0 calc(var(--grid-gutter) / 2);
+}
+
+.navbar {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--col-gap);
+    margin-bottom: var(--row-gap);
+}
+
+.nav-title {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: var(--row-gap);
+    color: var(--font-color);
+    font-family: var(--header-font);
+    font-weight: 500;
+    font-size: 2.4rem;
+    margin: 0.5rem 0;
+}
+
+.nav-title:hover {
+    text-decoration: underline;
+}
+
+.nav-menu {
+    text-decoration: none;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: calc(var(--row-gap)*2);
+    column-gap: calc(var(--col-gap)*2);
+    padding: 0;
+}
+
+
+.nav-menu li {
+    list-style: none;
+}
+
+.nav-link {
+    color: var(--font-color);
+    text-decoration: none;
+    font-size: 2.0rem;
+}
+
+.nav-link:hover {
+    text-decoration: underline;
+}
+
+.figure {
+    margin: var(--row-gap) 1rem;
+}
+
+.figure img{
+    max-width: 100%;
+    max-height: 100%;
+}
+
+@media screen and (min-width: 40rem){
+    .nav-title {
+        flex-direction: row;
+    }
+
+    .figure {
+        margin: var(--row-gap) 5rem;
+    }
+}
+
+.form {
+    margin: calc(var(--row-gap)*2) var(--col-gap);
+}
+
+.form-label {
+    display: block;
+    font-weight: bold;
+    margin: var(--row-gap) 0;
+}
+
+.form-check-label {
+    display: inline;
+    margin: var(--row-gap) var(--col-gap);
+}
+
+.form-control {
+    -webkit-appearance: none;
+    border: var(--border-width) solid var(--border-color);
+    border-radius: var(--border-radius);
+    line-height: 1.5;
+    display: block;
+    padding: 0.6rem 1.0rem;
+    width: 100%;
+    margin: var(--row-gap) 0;
+}
+
+.form-control:focus-visible {
+    border-color: var(--border-color-active);
+    box-shadow: none;
+    outline: var(--border-color-active) solid 0.1rem;
+}
+
+.form-check-control {
+    border: var(--border-width) solid var(--border-color);
+    border-radius: var(--border-radius);
+    display: inline;
+    margin: var(--row-gap) 0;
+}
+
+textarea {
+    min-height: 6.5rem;
+}
+
+.button {
+    line-height: 4.0rem;
+    padding: 0 2.0rem;
+    border: none;
+    border-radius: var(--border-radius);
+    background-color: var(--button-color);
+}
+
+.button:hover {
+    background-color: var(--button-hover-color);
+    cursor: pointer;
+}
+
+#mosparo-box {
+    margin: var(--row-gap) 0;
+}
+
+.list-box {
+    display: flex;
+    flex-direction: column;
+    row-gap: 1.0rem;
+    padding: 0;
+}
+
+.list-box > li {
+    list-style: none;
+    padding: 0.5rem;
+    background-color: var(--bg-secondary-color);
+}
+
+.required:after {
+    content: '*';
+    color: red;
+}
+
+.accent-box {
+    width: 100%;
+    padding: 0.5rem;
+    background-color: var(--bg-secondary-color);
+}
+
+.flashes {
+    display: flex;
+    flex-direction: column;
+    row-gap: 1.0rem;
+    padding: 0;
+}
+
+.flashes > li {
+    list-style: none;
+    padding: 0.5rem;
+    /* Will need styling to make it distinct from input fields */
+    border: var(--border-width) solid var(--border-color);
+}
+
+.gallery {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    row-gap: 1.0rem;
+    column-gap: 1.0rem;
+    padding: 0;
+}
+
+.gallery > li {
+    list-style: none;
+    padding: 0.5rem;
+    background-color: var(--bg-secondary-color);
+}
+
+.gallery-image {
+    width: 40rem;
+    height: 40rem;
+    display: block;
+    object-fit: contain;
+    background-color: var(--bg-secondary-color);
+    margin: var(--row-gap) auto;
+}

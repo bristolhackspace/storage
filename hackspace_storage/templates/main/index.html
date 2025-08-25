@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block contents %}
+<div class="container">
+    <h2>Your bookings</h2>
+
+    <h2>Storage Slots</h2>
+    {% for area in areas %}
+    <h3>{{ area.name }}</h3>
+    <ul>
+        {% for slot in area.slots %}
+        <li>
+            <h3>{{ slot.name }}</h3>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endfor %}
+    {% if session.name %}
+    <p>Hi, {{ session.name }}.</p>
+    {% endif %}
+</div>
+{% endblock %}

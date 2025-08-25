@@ -25,6 +25,7 @@ class Slot(PkModel):
     area_id: Mapped[int] = mapped_column(ForeignKey("area.id"))
 
     area: Mapped["Area"] = relationship(back_populates="slots")
+    # Data model allows multiple bookings, howeve application will restrict this
     bookings: Mapped[list["Booking"]] = relationship(back_populates="slot")
 
 class Booking(PkModel):

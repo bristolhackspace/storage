@@ -4,21 +4,70 @@
 
 {% block contents %}
 <div class="container">
+
+    {% if session.name %}
+    <h1>Hi, {{ session.name }}.</h1>
+    {% endif %}
+
     <h2>Your bookings</h2>
 
-    <h2>Storage Slots</h2>
-    {% for area in areas %}
-    <h3>{{ area.name }}</h3>
-    <ul>
-        {% for slot in area.slots %}
-        <li>
-            <h3>{{ slot.name }}</h3>
-        </li>
-        {% endfor %}
-    </ul>
-    {% endfor %}
-    {% if session.name %}
-    <p>Hi, {{ session.name }}.</p>
+    {% if loggedInUser.bookings%}
+    <table>
+        <tr>
+            <th>Area</th>
+            <th>Slot</th>
+            <th>Description</th>
+            <th>Expires</th>
+        </tr>
+        {% with userBookings = loggedInUser.bookings %}
+            {% for booking in userBookings %}
+                <tr>
+                    <td>{{ booking.slot.area.name }}</td>
+                    <td>{{ booking.slot.name }}</td>
+                    <td>{{ booking.description }}</td>
+                    <td>{{ booking.expiry }}</td>
+                </tr>
+            {% endfor %}
+        {% endwith %}
+
+    </table>
+    {% else %}
+        <p>
+            You have no Bookings yet
+        </p>
     {% endif %}
+
+    <h2>Storage Slots</h2>
+
+    <table>
+    <tr>
+        <th>Slot</th>
+        <th>Booked by</th>
+        <th>Description</th>
+        <th>Expires</th>
+    </tr>
+    {% for area in areas %}
+    <tr>
+        <th colspan="4">{{ area.name }}</th>
+    </tr>
+    {% for slot in area.slots %}
+        <tr>
+            <td>{{ slot.name }}</td>
+            {% if slot.bookings %}
+                {% with thisBooking = slot.bookings[0]%}
+                <td>{{ thisBooking.user.name }}</td>
+                <td>{{ thisBooking.description }}</td>
+                <td>{{ thisBooking.expiry }}</td>
+                {% endwith %}
+            {% else %}
+                <th colspan="3"><a href="{{ url_for('main.new_booking', bookslot=slot.id) }}">I want that</a></th>
+            {% endif %}
+        </tr>
+            
+        {% endfor %}
+
+    {% endfor %}
+    </table>
+
 </div>
 {% endblock %}

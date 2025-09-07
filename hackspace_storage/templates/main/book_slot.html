@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% import 'wtforms.html' as wtf %}
+
+{% block title %}Book slot{% endblock %}
+
+{% block contents %}
+<div class="container">
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+        {{ wtf.input(form.description, form) }}
+        <button type="submit" class="btn btn-primary">Book slot</button>
+    </form>
+</div>
+{% endblock %}

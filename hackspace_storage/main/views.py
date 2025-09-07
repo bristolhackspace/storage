@@ -4,12 +4,13 @@ from sqlalchemy.orm import joinedload
 
 from hackspace_storage.booking_rules import BookingError, try_make_booking
 
-from .forms import BookingForm
+from .forms import BookingForm, DeleteConfirmForm
 from hackspace_storage.extensions import db
-from hackspace_storage.models import Area, Slot, User
+from hackspace_storage.login import login_required
+from hackspace_storage.models import Area, Slot, User, Booking
 
 bp = Blueprint("main", __name__, url_prefix="/")
-user_id = 1
+
 
 @bp.route("/")
 def index():
@@ -19,6 +20,7 @@ def index():
     return render_template("main/index.html", areas=areas)
 
 @bp.route("/slots/<int:slot_id>/book", methods=["GET", "POST"])
+@login_required
 def book_slot(slot_id: int):
     slot = db.get_or_404(Slot, slot_id)
 
@@ -33,6 +35,23 @@ def book_slot(slot_id: int):
             flash(f"Unable to make booking: {ex.reason}", 'error')
 
     return render_template("main/book_slot.html", form=form, slot=slot)
+
+@bp.route("/bookings/<int:booking_id>/free", methods=["GET", "POST"])
+@login_required
+def free_booking(booking_id: int):
+    booking = db.get_or_404(Booking, booking_id)
+    if booking.user != g.user:
+        abort(403)
+
+    form = DeleteConfirmForm()
+
+    if form.validate_on_submit():
+        db.session.delete(booking)
+        db.session.commit()
+        flash("Booking deleted", "success")
+        return redirect(url_for(".index"))
+
+    return render_template("main/delete_booking.html", form=form, booking=booking)
 
 # This is just temporary to create a login session
 @bp.route("/fake-login")

@@ -9,6 +9,7 @@
     <form method="POST" action="">
         {{ form.hidden_tag() }}
         {{ wtf.input(form.description, form) }}
+        {{ wtf.input(form.remind_me, form) }}
         <button type="submit" class="btn btn-primary">Book slot</button>
     </form>
 </div>

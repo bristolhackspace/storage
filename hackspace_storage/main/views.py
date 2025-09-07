@@ -13,8 +13,8 @@ user_id = 1
 
 @bp.route("/")
 def index():
-    areaQuery = sa.select(Area).options(joinedload(Area.slots)).order_by(Area.name)
-    areas = db.session.scalars(areaQuery).unique().all()
+    area_query = sa.select(Area).options(joinedload(Area.slots)).order_by(Area.name)
+    areas = db.session.scalars(area_query).unique().all()
 
     return render_template("main/index.html", areas=areas)
 

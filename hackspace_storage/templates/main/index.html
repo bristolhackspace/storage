@@ -12,7 +12,7 @@
     <h2>Your bookings</h2>
 
     {% if g.user and g.user.bookings %}
-    <table>
+    <table class="rounded-corners">
         <tr>
             <th>Area</th>
             <th>Slot</th>
@@ -22,10 +22,10 @@
         {% with user_bookings = g.user.bookings %}
             {% for booking in user_bookings %}
                 <tr>
-                    <td>{{ booking.slot.area.name }}</td>
-                    <td>{{ booking.slot.name }}</td>
-                    <td>{{ booking.description }}</td>
-                    <td>{{ booking.expiry }} <a href="{{ url_for('main.free_booking', booking_id=booking.id) }}">Cancel booking</a></td>
+                    <td class="center">{{ booking.slot.area.name }}</td>
+                    <td class="center">{{ booking.slot.name }}</td>
+                    <td class="pad-left">{{ booking.description }}</td>
+                    <td class="center">{{ booking.expiry }} <a href="{{ url_for('main.free_booking', booking_id=booking.id) }}">Cancel booking</a></td>
                 </tr>
             {% endfor %}
         {% endwith %}
@@ -39,25 +39,23 @@
 
     <h2>Storage Slots</h2>
 
-    <table>
+    {% for area in areas %}
+    <h3>{{ area.name }}</h3>
+    <table class="rounded-corners">
     <tr>
         <th>Slot</th>
         <th>Booked by</th>
         <th>Description</th>
         <th>Expires</th>
     </tr>
-    {% for area in areas %}
-    <tr>
-        <th colspan="4">{{ area.name }}</th>
-    </tr>
     {% for slot in area.slots %}
         <tr>
-            <td>{{ slot.name }}</td>
+            <td class="center">{{ slot.name }}</td>
             {% if slot.bookings %}
                 {% with this_booking = slot.bookings[0]%}
-                <td>{{ this_booking.user.name }}</td>
-                <td>{{ this_booking.description }}</td>
-                <td>{{ this_booking.expiry }}</td>
+                <td class="center">{{ this_booking.user.name }}</td>
+                <td class="pad-left">{{ this_booking.description }}</td>
+                <td class="center">{{ this_booking.expiry }}</td>
                 {% endwith %}
             {% else %}
                 <th colspan="3"><a href="{{ url_for('main.book_slot', slot_id=slot.id) }}">I want that</a></th>
@@ -66,8 +64,8 @@
 
         {% endfor %}
 
-    {% endfor %}
     </table>
 
+    {% endfor %}
 </div>
 {% endblock %}

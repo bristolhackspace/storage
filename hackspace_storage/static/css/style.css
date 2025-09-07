@@ -269,6 +269,12 @@ textarea {
     border: var(--border-width) solid var(--border-color);
 }
 
+.flashes > li.success {
+    background-color: #66ff004a;
+    text-align: center;
+    border-color: #409f00;
+}
+
 .gallery {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -315,10 +321,43 @@ textarea {
 table {
     width: 96%;
 }
-table, th, td {
-  border: 1px solid black;
-  border-collapse: collapse;
+
+td.center {
+    text-align: center;
 }
+
+td.pad-left {
+    padding-left: 1rem;
+}
+
 tr:nth-child(odd) {
   background-color: #fff1e3;
+}
+
+table.rounded-corners {
+ border-spacing: 0;
+ border-collapse: separate;
+ border-radius: 10px;
+ border: 1px solid black;
+}
+
+/* Apply a border to the right of all but the last column */
+table.rounded-corners th:not(:last-child),
+table.rounded-corners td:not(:last-child) {
+ border-right: 1px solid black;
+}
+
+/* Apply a border to the bottom of all but the last row */
+table.rounded-corners>thead>tr:not(:last-child)>th,
+table.rounded-corners>thead>tr:not(:last-child)>td,
+table.rounded-corners>tbody>tr:not(:last-child)>th,
+table.rounded-corners>tbody>tr:not(:last-child)>td,
+table.rounded-corners>tfoot>tr:not(:last-child)>th,
+table.rounded-corners>tfoot>tr:not(:last-child)>td,
+table.rounded-corners>tr:not(:last-child)>td,
+table.rounded-corners>tr:not(:last-child)>th,
+table.rounded-corners>thead:not(:last-child),
+table.rounded-corners>tbody:not(:last-child),
+table.rounded-corners>tfoot:not(:last-child) {
+ border-bottom: 1px solid black;
 }

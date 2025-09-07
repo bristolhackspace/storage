@@ -14,7 +14,7 @@ bp = Blueprint("main", __name__, url_prefix="/")
 
 @bp.route("/")
 def index():
-    area_query = sa.select(Area).options(joinedload(Area.slots)).order_by(Area.name)
+    area_query = sa.select(Area).join(Area.slots).order_by(Area.name, Slot.name)
     areas = db.session.scalars(area_query).unique().all()
 
     return render_template("main/index.html", areas=areas)

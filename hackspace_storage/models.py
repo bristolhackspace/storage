@@ -4,7 +4,7 @@ import datetime
 from typing import Any, Optional
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
+from sqlalchemy.sql import func, expression
 
 from hackspace_storage.database import PkModel
 from hackspace_storage.extensions import db
@@ -53,6 +53,8 @@ class Booking(PkModel):
     expiry: Mapped[datetime.date]
     extensions: Mapped[int] = mapped_column(server_default="0")
     description: Mapped[str]
+    remind_me: Mapped[bool] = mapped_column()
+    reminder_sent: Mapped[bool] = mapped_column(server_default=expression.false())
 
     slot: Mapped["Slot"] = relationship(back_populates="bookings")
     user: Mapped["User"] = relationship(back_populates="bookings")

@@ -28,7 +28,12 @@ def book_slot(slot_id: int):
 
     if form.validate_on_submit():
         try:
-            try_make_booking(g.user, slot, form.description.data) # pyright: ignore[reportArgumentType]
+            try_make_booking(
+                g.user,
+                slot,
+                form.description.data,
+                form.remind_me.data,
+            ) # pyright: ignore[reportArgumentType]
             flash(f"Booking success", 'success')
             return redirect(url_for('.index'))
         except BookingError as ex:

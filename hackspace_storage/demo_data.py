@@ -29,13 +29,13 @@ def make_demo_data():
 
     db.session.add_all(areas)
 
-    demoUser = User(
+    demo_user = User(
         sub="demo",
         email="example@demo.com",
         name="Marsh"
     )
 
-    db.session.add(demoUser)
+    db.session.add(demo_user)
 
     for area in areas:
         for i in range(5):

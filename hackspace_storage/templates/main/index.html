@@ -25,7 +25,7 @@
                     <td>{{ booking.slot.area.name }}</td>
                     <td>{{ booking.slot.name }}</td>
                     <td>{{ booking.description }}</td>
-                    <td>{{ booking.expiry }}</td>
+                    <td>{{ booking.expiry }} <a href="{{ url_for('main.free_booking', booking_id=booking.id) }}">Cancel booking</a></td>
                 </tr>
             {% endfor %}
         {% endwith %}

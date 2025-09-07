@@ -1,4 +1,5 @@
 
+from collections import defaultdict
 import datetime
 from typing import Any, Optional
 from sqlalchemy import ForeignKey
@@ -15,10 +16,28 @@ class User(PkModel):
 
     bookings: Mapped[list["Booking"]] = relationship(back_populates="user")
 
+    def bookings_per_category(self) -> defaultdict["Category", int]:
+        counts = defaultdict(int)
+        for booking in self.bookings:
+            counts[booking.slot.area.category] += 1
+        return counts
+
+class Category(PkModel):
+    name: Mapped[str]
+    max_bookings: Mapped[int]
+    initial_duration_days: Mapped[int]
+    extension_duration_days: Mapped[int]
+    extension_period_days: Mapped[int]
+    max_extensions: Mapped[int]
+
+    areas: Mapped[list["Area"]] = relationship(back_populates="category")
+
 class Area(PkModel):
     name: Mapped[str]
+    category_id: Mapped[int] = mapped_column(ForeignKey("category.id"))
 
     slots: Mapped[list["Slot"]] = relationship(back_populates="area")
+    category: Mapped["Category"] = relationship(back_populates="areas")
 
 class Slot(PkModel):
     name: Mapped[str]

@@ -5,13 +5,13 @@
 {% block contents %}
 <div class="container">
 
-    {% if session.name %}
-    <h1>Hi, {{ session.name }}.</h1>
+    {% if g.user %}
+    <h1>Hi, {{ g.user.name }}.</h1>
     {% endif %}
 
     <h2>Your bookings</h2>
 
-    {% if loggedInUser.bookings%}
+    {% if g.user and g.user.bookings %}
     <table>
         <tr>
             <th>Area</th>
@@ -19,7 +19,7 @@
             <th>Description</th>
             <th>Expires</th>
         </tr>
-        {% with userBookings = loggedInUser.bookings %}
+        {% with userBookings = g.user.bookings %}
             {% for booking in userBookings %}
                 <tr>
                     <td>{{ booking.slot.area.name }}</td>
@@ -60,10 +60,10 @@
                 <td>{{ thisBooking.expiry }}</td>
                 {% endwith %}
             {% else %}
-                <th colspan="3"><a href="{{ url_for('main.new_booking', bookslot=slot.id) }}">I want that</a></th>
+                <th colspan="3"><a href="{{ url_for('main.book_slot', slot_id=slot.id) }}">I want that</a></th>
             {% endif %}
         </tr>
-            
+
         {% endfor %}
 
     {% endfor %}

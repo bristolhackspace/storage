@@ -16,7 +16,7 @@ def make_demo_data():
     material_category = Category(
         name="material",
         max_bookings=2,
-        initial_duration_days=14,
+        initial_duration_days=7,
         extension_duration_days=14,
         extension_period_days=10,
         max_extensions=2

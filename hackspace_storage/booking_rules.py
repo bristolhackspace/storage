@@ -32,3 +32,18 @@ def try_make_booking(user: User, slot: Slot, description: str):
     ))
 
     db.session.commit()
+
+def extend_booking(booking: Booking):
+    category = booking.slot.area.category
+
+    today = date.today()
+    delta = booking.expiry - today
+
+    extension_period = category.extension_period_days
+
+    if delta.days >= extension_period:
+        raise BookingError(f"Can only extend within the last {extension_period} days")
+
+    booking.expiry += timedelta(days=category.extension_duration_days)
+    booking.extensions += 1
+    db.session.commit()

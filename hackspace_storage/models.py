@@ -51,6 +51,7 @@ class Booking(PkModel):
     slot_id: Mapped[int] = mapped_column(ForeignKey("slot.id"))
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     expiry: Mapped[datetime.date]
+    extensions: Mapped[int] = mapped_column(server_default="0")
     description: Mapped[str]
 
     slot: Mapped["Slot"] = relationship(back_populates="bookings")

@@ -2,7 +2,7 @@ from flask import Blueprint, flash, g, redirect, render_template, request, sessi
 import sqlalchemy as sa
 from sqlalchemy.orm import joinedload
 
-from hackspace_storage.booking_rules import BookingError, try_make_booking
+from hackspace_storage.booking_rules import BookingError, try_make_booking, extend_booking
 
 from .forms import BookingForm, DeleteConfirmForm
 from hackspace_storage.extensions import db
@@ -52,6 +52,22 @@ def free_booking(booking_id: int):
         return redirect(url_for(".index"))
 
     return render_template("main/delete_booking.html", form=form, booking=booking)
+
+
+@bp.route("/bookings/<int:booking_id>/extend")
+@login_required
+def extend(booking_id: int):
+    booking = db.get_or_404(Booking, booking_id)
+    if booking.user != g.user:
+        abort(403)
+    
+    try:
+        extend_booking(booking)
+        flash("Extension success", 'success')
+    except BookingError as ex:
+        flash(ex.reason, 'error')
+    return redirect(url_for('main.index'))
+
 
 # This is just temporary to create a login session
 @bp.route("/fake-login")

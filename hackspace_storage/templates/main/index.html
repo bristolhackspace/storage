@@ -25,7 +25,11 @@
                     <td class="center">{{ booking.slot.area.name }}</td>
                     <td class="center">{{ booking.slot.name }}</td>
                     <td class="pad-left">{{ booking.description }}</td>
-                    <td class="center">{{ booking.expiry }} <a href="{{ url_for('main.free_booking', booking_id=booking.id) }}">Cancel booking</a></td>
+                    <td class="center">
+                        {{ booking.expiry }}
+                        <a href="{{ url_for('main.free_booking', booking_id=booking.id) }}">Cancel booking</a>
+                        <a href="{{ url_for('main.extend', booking_id=booking.id) }}">Extend booking</a>
+                    </td>
                 </tr>
             {% endfor %}
         {% endwith %}

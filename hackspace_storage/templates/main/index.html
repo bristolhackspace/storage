@@ -12,28 +12,26 @@
     <h2>Your bookings</h2>
 
     {% if g.user and g.user.bookings %}
-    <table class="rounded-corners">
-        <tr>
-            <th>Area</th>
-            <th>Slot</th>
-            <th>Description</th>
-            <th>Expires</th>
-            <th colspan="2">Actions</th>
-        </tr>
+    <div class="grid-container">
         {% with user_bookings = g.user.bookings %}
             {% for booking in user_bookings %}
-                <tr>
-                    <td class="center">{{ booking.slot.area.name }}</td>
-                    <td class="center">{{ booking.slot.name }}</td>
-                    <td class="pad-left">{{ booking.description }}</td>
-                    <td class="center">{{ booking.expiry }}</td>
-                    <td class="center"><a href="{{ url_for('main.free_booking', booking_id=booking.id) }}">Cancel</a></td>
-                    <td class="center"><a href="{{ url_for('main.extend', booking_id=booking.id) }}">Extend</a></td>
-                </tr>
+                <div class="grid-card user">
+                    <div class="card-header">
+                        <h3>{{ booking.slot.area.name }}</h3>
+                        <h3 class="float-right">{{ booking.slot.name }}</h3>
+                    </div>
+                    <div class="card-body">
+                            <p>{{ booking.description }}</p>
+                            <p> Expires: {{ booking.expiry }}</p>
+                    </div>
+                    <div class="card-footer-user">
+                        <a class="cancel-button" href="{{ url_for('main.free_booking', booking_id=booking.id) }}">Cancel</a>
+                        <a class="extend-button" href="{{ url_for('main.extend', booking_id=booking.id) }}">Extend</a>
+                    </div>
+                </div>
             {% endfor %}
         {% endwith %}
-
-    </table>
+    </div>
     {% else %}
         <p>
             You have no Bookings yet
@@ -84,17 +82,17 @@
     var i;
 
     for (i = 0; i < acc.length; i++) {
-    acc[i].addEventListener("click", function() {
-        this.classList.toggle("active");
-        var panel = this.nextElementSibling;
+        acc[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var panel = this.nextElementSibling;
 
-        if (panel.style.maxHeight) {
-            panel.style.maxHeight = null;
-        } 
-        else {
-            panel.style.maxHeight = panel.scrollHeight + "px";
-        }
-    });
+            if (panel.style.maxHeight) {
+                panel.style.maxHeight = null;
+            } 
+            else {
+                panel.style.maxHeight = panel.scrollHeight + "px";
+            }
+        });
     }
 </script>
 {% endblock %}

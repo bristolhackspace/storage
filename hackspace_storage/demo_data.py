@@ -42,11 +42,13 @@ def make_demo_data():
             area.slots.append(Slot(
                 name=f"{area.name[0]}{i:03}"
             ))
-            # if i % 2 == 0:
-            #     month = random.randrange(1,12)
-            #     area.slots[i].bookings.append(Booking(
-            #         user_id=1,
-            #         expiry=datetime.datetime(2025, month, 17),
-            #         description=f"Booking made for month {month}"
-            #     ))
+            if i % 2 == 0:
+                month = random.randrange(1,12)
+                area.slots[i].bookings.append(Booking(
+                    user_id=1,
+                    expiry=datetime.datetime(2025, month, 17),
+                    description=f"Booking made for month {month}",
+                    likes = random.randrange(0, 25),
+                    remind_me = True
+                ))
     db.session.commit()

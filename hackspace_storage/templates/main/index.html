@@ -60,8 +60,13 @@
                             <p>{{ this_booking.description }}</p>
                     </div>
                     <div class="card-footer">
-                            <p> Expires: {{ this_booking.expiry }}</p>
+                        <p>Expires: {{ this_booking.expiry }}</p>
                     </div>
+                    {% if this_booking.likes %}
+                    <div class="likes-container">
+                        ❤️ {{ this_booking.likes }}
+                    </div>
+                    {% endif%}
                     {% else %}
                     <div class="card-body">
                         <p><a class="booking-button" href="{{ url_for('main.book_slot', slot_id=slot.id) }}">Book slot</a></p>

@@ -419,6 +419,7 @@ Defaulting to 3 for the User bookings*/
 .cancel-button {
     background-color: var(--color-error);
     border-radius: 5px;
+    border: none;
     color: #fff;
     cursor: pointer;
     display: block;
@@ -430,9 +431,13 @@ Defaulting to 3 for the User bookings*/
     content: url(../images/cancel.svg);
     margin-right: 0.5rem;
 }
+.cancel-button:visited {
+    color: #fff;
+}
 .extend-button {
     background-color: #d17308;
     border-radius: 5px;
+    border: none;
     color: #fff;
     cursor: pointer;
     display: block;
@@ -443,6 +448,14 @@ Defaulting to 3 for the User bookings*/
 .extend-button:before {
     content: url(../images/extend.svg);
     margin-right: 0.5rem;
+}
+.extend-button:visited {
+    color:#fff;
+}
+
+.extend-button.no-icon:before {
+    content: '';
+    margin-right: none;
 }
 
 .accordion {

@@ -58,7 +58,11 @@ def init_app(app: Flask):
     def login_from_session() -> None:
         user_id = session.get("_user_id", None)
         if (user_id is not None) and ('user' not in g):
-            g.user = db.session.get(User, user_id)
+            user = db.session.get(User, user_id)
+            if user is None:
+                session.pop("_user_id")
+            else:
+                g.user = user
 
 def login_required(f):
     @wraps(f)

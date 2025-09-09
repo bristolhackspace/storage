@@ -1,8 +1,10 @@
-from flask import Blueprint, flash, g, redirect, render_template, request, session, url_for
+from datetime import timedelta
+from flask import Blueprint, flash, g, redirect, render_template, request, session, url_for, abort
 import sqlalchemy as sa
 from sqlalchemy.orm import joinedload
 
 from hackspace_storage.booking_rules import BookingError, try_make_booking, extend_booking
+from hackspace_storage.mailer import send_email
 
 from .forms import BookingForm, DeleteConfirmForm
 from hackspace_storage.extensions import db
@@ -28,13 +30,18 @@ def book_slot(slot_id: int):
 
     if form.validate_on_submit():
         try:
-            try_make_booking(
+            booking = try_make_booking(
                 g.user,
                 slot,
-                form.description.data,
+                form.description.data or "",
                 form.remind_me.data,
             ) # pyright: ignore[reportArgumentType]
             flash(f"Booking success", 'success')
+
+            if booking.remind_me:
+                reminder_date = booking.expiry - timedelta(days=slot.area.category.extension_period_days)
+                send_email(g.user, "email/slot_booked", slot=slot, booking=booking, reminder_date=reminder_date)
+
             return redirect(url_for('.index'))
         except BookingError as ex:
             flash(f"Unable to make booking: {ex.reason}", 'error')
@@ -72,12 +79,3 @@ def extend(booking_id: int):
     except BookingError as ex:
         flash(ex.reason, 'error')
     return redirect(url_for('main.index'))
-
-
-# This is just temporary to create a login session
-@bp.route("/fake-login")
-def fake_login():
-    user = db.get_or_404(User, 1)
-    session["_user_id"] = user.id
-    g.user = user
-    return redirect(url_for(".index"))

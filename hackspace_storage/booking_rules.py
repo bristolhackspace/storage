@@ -18,21 +18,23 @@ def can_make_booking(user: User, slot: Slot) -> Tuple[bool, str]:
     return True, ""
 
 
-def try_make_booking(user: User, slot: Slot, description: str, remind_me: bool):
+def try_make_booking(user: User, slot: Slot, description: str, remind_me: bool) -> Booking:
     can_book, reason = can_make_booking(user, slot)
     if not can_book:
         raise BookingError(reason)
 
     today = date.today()
 
-    slot.bookings.append(Booking(
+    booking = Booking(
         user=user,
         expiry=today + timedelta(days=slot.area.category.initial_duration_days),
         description=description,
         remind_me=remind_me,
-    ))
-
+    )
+    slot.bookings.append(booking)
     db.session.commit()
+
+    return booking
 
 def extend_booking(booking: Booking):
     category = booking.slot.area.category

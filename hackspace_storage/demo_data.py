@@ -1,6 +1,9 @@
-from flask import Blueprint
+import click
+from flask import Blueprint, current_app
 import random
-import datetime
+from datetime import datetime, timezone, timedelta
+import secrets
+import jwt
 
 from hackspace_storage.extensions import db
 from hackspace_storage.models import Area, Category, Slot, Booking, User
@@ -32,7 +35,7 @@ def make_demo_data():
     demo_user = User(
         sub="demo",
         email="example@demo.com",
-        name="Marsh"
+        name="Demo McDemoFace"
     )
 
     db.session.add(demo_user)
@@ -42,11 +45,29 @@ def make_demo_data():
             area.slots.append(Slot(
                 name=f"{area.name[0]}{i:03}"
             ))
-            # if i % 2 == 0:
-            #     month = random.randrange(1,12)
-            #     area.slots[i].bookings.append(Booking(
-            #         user_id=1,
-            #         expiry=datetime.datetime(2025, month, 17),
-            #         description=f"Booking made for month {month}"
-            #     ))
+        month = random.randrange(1,12)
+        area.slots[0].bookings.append(Booking(
+            user=demo_user,
+            expiry=datetime(2025, month, 17),
+            description=f"Cool thingy",
+            remind_me=True
+        ))
     db.session.commit()
+
+@bp.cli.command("make-login")
+@click.argument("name")
+@click.argument("email")
+def make_login(name, email):
+    sub = f"demouser {email}"
+    # Longer expiry than we'd usually use, but easier for testing
+    expiry = datetime.now(timezone.utc) + timedelta(days=1)
+
+    payload = {
+        "exp": int(expiry.timestamp()),
+        "sub": sub,
+        "name": name,
+        "email": email
+    }
+
+    token = jwt.encode(payload, current_app.config["LOGIN_START_SECRET"], "HS256")
+    print(f"Copy this onto the end of the URL to login: ?login_token={token}")

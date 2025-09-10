@@ -26,9 +26,9 @@
                     </div>
                     <div class="card-footer-user">
                         <a class="cancel-button" href="{{ url_for('main.free_booking', booking_id=booking.id) }}">Cancel</a>
-                        {% if can_extend_booking(booking)[0] %}
-                        <a class="extend-button" href="{{ url_for('main.extend', booking_id=booking.id) }}">Extend</a>
-                        {% endif %}
+                        
+                        <a class="extend-button {{ 'invisible' if not can_extend_booking(booking)[0] else '' }}" href="{{ url_for('main.extend', booking_id=booking.id) }}">Extend</a>
+                        
                     </div>
                 </div>
             {% endfor %}

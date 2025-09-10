@@ -1,8 +1,19 @@
 from datetime import date, timedelta
 from typing import Tuple
 
+from flask import Flask
+
 from hackspace_storage.extensions import db
 from hackspace_storage.models import User, Slot, Booking
+
+
+def init_app(app: Flask):
+    @app.context_processor
+    def booking_helpers():
+        return dict(
+            can_make_booking=can_make_booking,
+            can_extend_booking=can_extend_booking,
+        )
 
 class BookingError(Exception):
     def __init__(self, reason):
@@ -36,7 +47,7 @@ def try_make_booking(user: User, slot: Slot, description: str, remind_me: bool) 
 
     return booking
 
-def extend_booking(booking: Booking):
+def can_extend_booking(booking: Booking):
     category = booking.slot.area.category
 
     today = date.today()
@@ -45,7 +56,16 @@ def extend_booking(booking: Booking):
     extension_period = category.extension_period_days
 
     if delta.days >= extension_period:
-        raise BookingError(f"Can only extend within the last {extension_period} days")
+        return False, f"Can only extend within the last {extension_period} days"
+    return True, ""
+
+
+def extend_booking(booking: Booking):
+    can_extend, reason = can_extend_booking(booking)
+    if not can_extend:
+        raise BookingError(reason)
+
+    category = booking.slot.area.category
 
     booking.expiry += timedelta(days=category.extension_duration_days)
     booking.extensions += 1

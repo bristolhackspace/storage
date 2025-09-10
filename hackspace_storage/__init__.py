@@ -41,9 +41,11 @@ def create_app(test_config=None):
 def register_extensions(app: Flask):
     from .extensions import db, migrate
     from . import login
+    from . import booking_rules
     db.init_app(app)
     migrate.init_app(app)
     login.init_app(app)
+    booking_rules.init_app(app)
 
 
 def register_blueprints(app: Flask):

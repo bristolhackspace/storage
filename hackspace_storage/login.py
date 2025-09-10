@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 import sqlalchemy as sa
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import PendingRollbackError
 from sqlalchemy.dialects.postgresql import insert
 from typing import Any
 import jwt
@@ -33,21 +33,22 @@ def init_app(app: Flask):
         email = decoded_token["email"]
         name = decoded_token["name"]
 
-        try:
-            user = User(
-                sub=sub,
+        stmt = insert(User).values(
+            sub=sub,
+            email=email,
+            name=name
+        ).on_conflict_do_update(
+            index_elements=[User.sub],
+            set_=dict(
                 email=email,
-                name=name,
+                name=name
             )
-            db.session.add(user)
-            db.session.commit()
-        except IntegrityError:
-            query = sa.select(User).where(User.sub==decoded_token["sub"])
-            user = db.session.execute(query).scalar_one()
-            if user.email != email or user.name != name:
-                user.email = email
-                user.name = name
-                db.session.commit()
+        ).returning(User)
+
+        orm_stmt = sa.select(User).from_statement(stmt).execution_options(populate_existing=True)
+
+        user = db.session.execute(orm_stmt).scalar_one()
+        db.session.commit()
 
         session["_user_id"] = user.id
         g.user = user

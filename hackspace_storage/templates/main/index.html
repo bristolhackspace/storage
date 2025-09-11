@@ -12,28 +12,28 @@
     <h2>Your bookings</h2>
 
     {% if g.user and g.user.bookings %}
-    <table class="rounded-corners">
-        <tr>
-            <th>Area</th>
-            <th>Slot</th>
-            <th>Description</th>
-            <th>Expires</th>
-            <th colspan="2">Actions</th>
-        </tr>
+    <div class="grid-container">
         {% with user_bookings = g.user.bookings %}
             {% for booking in user_bookings %}
-                <tr>
-                    <td class="center">{{ booking.slot.area.name }}</td>
-                    <td class="center">{{ booking.slot.name }}</td>
-                    <td class="pad-left">{{ booking.description }}</td>
-                    <td class="center">{{ booking.expiry }}</td>
-                    <td class="center"><a href="{{ url_for('main.free_booking', booking_id=booking.id) }}">Cancel</a></td>
-                    <td class="center"><a href="{{ url_for('main.extend', booking_id=booking.id) }}">Extend</a></td>
-                </tr>
+                <div class="grid-card user">
+                    <div class="card-header">
+                        <h3>{{ booking.slot.area.name }}</h3>
+                        <h3 class="float-right">{{ booking.slot.name }}</h3>
+                    </div>
+                    <div class="card-body">
+                            <p>{{ booking.description }}</p>
+                            <p> Expires: {{ booking.expiry }}</p>
+                    </div>
+                    <div class="card-footer-user">
+                        <a class="cancel-button" href="{{ url_for('main.free_booking', booking_id=booking.id) }}">Cancel</a>
+                        
+                        <a class="extend-button {{ 'invisible' if not can_extend_booking(booking)[0] else '' }}" href="{{ url_for('main.extend', booking_id=booking.id) }}">Extend</a>
+                        
+                    </div>
+                </div>
             {% endfor %}
         {% endwith %}
-
-    </table>
+    </div>
     {% else %}
         <p>
             You have no Bookings yet
@@ -43,32 +43,58 @@
     <h2>Storage Slots</h2>
 
     {% for area in areas %}
-    <h3>{{ area.name }}</h3>
-    <table class="rounded-corners">
-    <tr>
-        <th>Slot</th>
-        <th>Booked by</th>
-        <th>Description</th>
-        <th>Expires</th>
-    </tr>
-    {% for slot in area.slots %}
-        <tr>
-            <td class="center">{{ slot.name }}</td>
-            {% if slot.bookings %}
+    <button class="accordion">{{ area.name }}</button>
+    <div class="panel">
+        {# <h3>{{ area.name }}</h3> #}
+        <div class="grid-container" style="grid-template-columns: repeat({{area.column_count}}, 1fr)">
+            {% for slot in area.slots %}
                 {% with this_booking = slot.bookings[0]%}
-                <td class="center">{{ this_booking.user.name }}</td>
-                <td class="pad-left">{{ this_booking.description }}</td>
-                <td class="center">{{ this_booking.expiry }}</td>
+
+                <div class="grid-card">
+                    <div class="card-header {{ 'booked' if slot.bookings else 'free' }}">
+                        <h3>{{ slot.name }}</h3>
+                        {% if slot.bookings %}
+                        <h3 class="float-right">{{ this_booking.user.name }}</h3>
+                        {% endif %}
+                    </div>
+                    {% if slot.bookings %}
+                    <div class="card-body">
+                            <p>{{ this_booking.description }}</p>
+                    </div>
+                    <div class="card-footer">
+                            <p> Expires: {{ this_booking.expiry }}</p>
+                    </div>
+                    {% else %}
+                    <div class="card-body">
+                        <p><a class="booking-button" href="{{ url_for('main.book_slot', slot_id=slot.id) }}">Book slot</a></p>
+                    </div>
+                    {% endif %}
+                    
+                    
+                </div>
                 {% endwith %}
-            {% else %}
-                <th colspan="3"><a href="{{ url_for('main.book_slot', slot_id=slot.id) }}">Book slot</a></th>
-            {% endif %}
-        </tr>
-
-        {% endfor %}
-
-    </table>
-
+            {% endfor %}
+        </div>
+    </div>
     {% endfor %}
+
 </div>
+<script>
+    var acc = document.getElementsByClassName("accordion");
+    var i;
+
+    for (i = 0; i < acc.length; i++) {
+        acc[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var panel = this.nextElementSibling;
+
+            if (panel.style.maxHeight) {
+                panel.style.maxHeight = null;
+            } 
+            else {
+                panel.style.maxHeight = panel.scrollHeight + "px";
+            }
+        });
+    }
+</script>
 {% endblock %}

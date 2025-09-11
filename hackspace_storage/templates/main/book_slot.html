@@ -10,7 +10,8 @@
         {{ form.hidden_tag() }}
         {{ wtf.input(form.description, form) }}
         {{ wtf.input(form.remind_me, form) }}
-        <button type="submit" class="btn btn-primary">Book slot</button>
+        <button type="submit" class="extend-button no-icon">Book slot</button>
     </form>
+    <a href="{{ url_for('main.index') }}"> < Back</a>
 </div>
 {% endblock %}

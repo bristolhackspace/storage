@@ -25,9 +25,9 @@ def make_demo_data():
         max_extensions=2
     )
 
-    left_area = Area(name="Left", category=material_category)
-    right_area = Area(name="Right", category=material_category)
-    back_area = Area(name="Back", category=material_category)
+    left_area = Area(name="Left", column_count=3, category=material_category)
+    right_area = Area(name="Right", column_count=4, category=material_category)
+    back_area = Area(name="Back", column_count=2, category=material_category)
     areas = [left_area, right_area, back_area]
 
     db.session.add_all(areas)

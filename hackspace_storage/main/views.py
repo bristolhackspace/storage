@@ -45,7 +45,14 @@ def book_slot(slot_id: int):
 
             if booking.remind_me:
                 reminder_date = booking.expiry - timedelta(days=slot.area.category.extension_period_days)
-                send_email(g.user, "email/slot_booked", slot=slot, booking=booking, reminder_date=reminder_date)
+                send_email(
+                    g.user,
+                    "email/slot_booked",
+                    subject="Booking created",
+                    slot=slot,
+                    booking=booking,
+                    reminder_date=reminder_date
+                )
 
             return redirect(url_for('.index'))
         except BookingError as ex:

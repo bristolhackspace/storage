@@ -1,5 +1,6 @@
 from datetime import timedelta
 from flask import Blueprint, flash, g, redirect, render_template, request, session, url_for, abort, current_app
+import secrets
 import sqlalchemy as sa
 from sqlalchemy.orm import joinedload
 
@@ -25,6 +26,10 @@ def index():
 def logout():
     session.clear()
     return redirect(current_app.config["PORTAL_URL"])
+
+@bp.route("/finish")
+def finish():
+    return render_template("main/close_page_restricted.html")
 
 @bp.route("/slots/<int:slot_id>/book", methods=["GET", "POST"])
 @login_required
@@ -76,6 +81,27 @@ def free_booking(booking_id: int):
         return redirect(url_for(".index"))
 
     return render_template("main/delete_booking.html", form=form, booking=booking)
+
+
+@bp.route("/bookings/<int:booking_id>/free-email", methods=["GET", "POST"])
+def free_booking_email(booking_id: int):
+    booking = db.session.get(Booking, booking_id)
+
+    if (not booking
+        or not booking.secret
+        or not secrets.compare_digest(booking.secret, request.args.get("token", ""))
+        ):
+        abort(403, description="Booking link expired or invalid.")
+
+    form = DeleteConfirmForm()
+
+    if form.validate_on_submit():
+        db.session.delete(booking)
+        db.session.commit()
+        flash("Booking deleted", "success")
+        return redirect(url_for(".finish"))
+
+    return render_template("main/delete_booking_restricted.html", form=form, booking=booking)
 
 
 @bp.route("/bookings/<int:booking_id>/extend")

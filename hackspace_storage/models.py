@@ -56,6 +56,7 @@ class Booking(PkModel):
     description: Mapped[str]
     remind_me: Mapped[bool] = mapped_column()
     reminder_sent: Mapped[bool] = mapped_column(server_default=expression.false())
+    secret: Mapped[Optional[str]]
 
     slot: Mapped["Slot"] = relationship(back_populates="bookings")
     user: Mapped["User"] = relationship(back_populates="bookings")

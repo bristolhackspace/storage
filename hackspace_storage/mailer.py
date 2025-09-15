@@ -8,7 +8,7 @@ from jinja2 import TemplateNotFound
 
 from hackspace_storage.models import User
 
-def send_email(user: User, template: str, **kwargs):
+def send_email(user: User, template: str, subject: str, **kwargs):
     sender_email = current_app.config["SENDER_EMAIL"]
 
     plain_content = render_template(f"{template}.txt.j2", user=user, **kwargs)
@@ -24,10 +24,10 @@ def send_email(user: User, template: str, **kwargs):
     else:
         send_fn = send_logger_email
 
-    send_fn(sender_email, receiver_email, plain_content, html_content)
+    send_fn(sender_email, receiver_email, plain_content, html_content, subject)
 
 
-def send_smtp_email(sender: str, receiver: str, text: str, html: str|None):
+def send_smtp_email(sender: str, receiver: str, text: str, html: str|None, subject:str):
     context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
 
     port = current_app.config.get("SMTP_PORT", 465)
@@ -42,7 +42,7 @@ def send_smtp_email(sender: str, receiver: str, text: str, html: str|None):
         server.login(username, password)
 
         message = MIMEMultipart("alternative")
-        message["Subject"] = "Hello from python"
+        message["Subject"] = subject
         message["From"] = sender
         message["To"] = receiver
 
@@ -55,4 +55,4 @@ def send_smtp_email(sender: str, receiver: str, text: str, html: str|None):
 
 
 def send_logger_email(sender: str, receiver: str, text: str, html: str|None):
-    current_app.logger.info(f"Sending email from {sender} to {receiver}: \n\n {text}")
+    current_app.logger.info(f"Sending email from {sender} to {receiver}: {subject} \n\n {text}")

@@ -1,3 +1,5 @@
 Hello {{user.name}},
 
 This is an email to confirm you have booked slot {{slot.name}}. We will send an expiry reminder on {{reminder_date}}. You will be able to extend the booking in-person on this date.
+
+If you want to cancel this booking you can do so at the Hackspace, or remotely using this link: {{ url_for('main.free_booking_email', booking_id=booking.id, token=booking.secret, _external=True) }}.

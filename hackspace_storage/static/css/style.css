@@ -137,7 +137,7 @@ dd {
     margin: 0.5rem 0;
 }
 
-.nav-title:hover {
+a.nav-title:hover {
     text-decoration: underline;
 }
 

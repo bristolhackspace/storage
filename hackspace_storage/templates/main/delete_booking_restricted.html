@@ -1,0 +1,21 @@
+{% extends "base_restricted.html" %}
+
+{% import 'wtforms.html' as wtf %}
+
+{% set slot = booking.slot %}
+
+{% block title %}Cancel booking - {{ slot.name }}{% endblock %}
+
+{% block contents %}
+<div class="container">
+    <h1>Cancel booking - {{ slot.name }}</h1>
+    <p>Description:</p>
+    <p>{{ booking.description }}</p>
+    <p>Are you sure you want to cancel this booking?</p>
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+        <button type="submit" class="cancel-button">Cancel booking</button>
+    </form>
+    <a href="{{ url_for('main.index') }}"> &lt; Back</a>
+</div>
+{% endblock %}

@@ -21,6 +21,11 @@ def index():
 
     return render_template("main/index.html", areas=areas)
 
+@bp.route("/logout")
+def logout():
+    session.clear()
+    return redirect(current_app.config["PORTAL_URL"])
+
 @bp.route("/slots/<int:slot_id>/book", methods=["GET", "POST"])
 @login_required
 def book_slot(slot_id: int):

@@ -5,6 +5,7 @@ from flask import Flask
 
 from hackspace_storage.extensions import db
 from hackspace_storage.models import User, Slot, Booking
+from hackspace_storage.token import generate_token
 
 
 def init_app(app: Flask):
@@ -41,6 +42,7 @@ def try_make_booking(user: User, slot: Slot, description: str, remind_me: bool) 
         expiry=today + timedelta(days=slot.area.category.initial_duration_days),
         description=description,
         remind_me=remind_me,
+        secret=generate_token()
     )
     slot.bookings.append(booking)
     db.session.commit()

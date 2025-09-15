@@ -1,5 +1,5 @@
 from datetime import timedelta
-from flask import Blueprint, flash, g, redirect, render_template, request, session, url_for, abort
+from flask import Blueprint, flash, g, redirect, render_template, request, session, url_for, abort, current_app
 import sqlalchemy as sa
 from sqlalchemy.orm import joinedload
 

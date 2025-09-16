@@ -62,6 +62,11 @@
                             <p>{{ this_booking.description }}</p>
                     </div>
                     <div class="card-footer">
+                            {% if g.user.id %}
+                            <div class="like-button {{ 'liked' if this_booking.do_i_like(g.user.id) else '' }}" id="like-button-{{ this_booking.id }}">{{ this_booking.get_likes() }}</div>
+                            {% else %}
+                            <div class="like-button" id="like-button-{{ this_booking.id }}">{{ this_booking.get_likes() }}</div>
+                            {% endif %}
                             <p> Expires: {{ this_booking.expiry.strftime("%d-%b-%Y") }}</p>
                     </div>
                     {% else %}
@@ -96,5 +101,31 @@
             }
         });
     }
+
+    var likeButtons = document.getElementsByClassName("like-button")
+    var lb;
+
+    for (lb = 0; lb < likeButtons.length; lb++) {
+        likeButtons[lb].addEventListener("click", function() {
+            const thisID = this.id.split("-")[2]
+            const xhttp = new XMLHttpRequest();
+            xhttp.onload = function() {
+                if (xhttp.status = 200) {
+                    const response = xhttp.responseText
+                    var arrResponse = response.split("|")
+                    if (arrResponse[0] = "Success") {
+                        var thisID = "like-button-" + arrResponse[1]
+                        document.getElementById(thisID).classList.toggle("liked");
+                        document.getElementById(thisID).innerHTML = arrResponse[2]
+                    }
+                }
+            }
+            {% if g.user %}
+            xhttp.open("PUT", `/bookings/${thisID}/like/{{ g.user.id }}`, true);
+            xhttp.send()
+            {% endif %}
+        });
+    } 
+
 </script>
 {% endblock %}

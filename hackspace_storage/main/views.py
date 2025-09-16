@@ -34,6 +34,26 @@ def logout():
 def finish():
     return render_template("main/close_page_restricted.html")
 
+@bp.route("/bookings/<int:booking_id>/like/<int:user_id>", methods=["PUT"])
+@login_required
+def like_post(booking_id: int, user_id: int):
+    booking = db.get_or_404(Booking, booking_id)
+    likes_string = str(booking.likes)
+    likes_count = 0
+    if likes_string == "None":
+        booking.likes = user_id
+    else:
+        check_list = likes_string.split("|")
+        for item in check_list:
+            if item == str(user_id):
+                abort(403, description="Already liked")
+
+        likes_count = len(check_list)
+        booking.likes = likes_string + "|" + str(user_id)
+    db.session.commit()
+    return "Success|" + str(booking_id) +"|"+ str(likes_count+1)
+
+
 @bp.route("/slots/<int:slot_id>/book", methods=["GET", "POST"])
 @login_required
 def book_slot(slot_id: int):

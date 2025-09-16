@@ -394,7 +394,11 @@ Defaulting to 3 for the User bookings*/
 .card-footer {
     margin: 0 1rem 1rem 1rem;
     display: flex;
-    float: right;
+    justify-content: space-between;
+}
+.card-footer p {
+    margin: 0;
+    text-align: right;
 }
 .card-footer-user {
     margin: 0 1rem 1rem 1rem;
@@ -512,6 +516,26 @@ Defaulting to 3 for the User bookings*/
 
 .invisible {
     visibility: hidden;
+}
+
+.like-button {
+    display: block;
+    background-image: url("../images/heart.svg");
+    font-family: 'ocr-a-extended';
+    color: white;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: left top;
+    width: 40px;
+    height: 40px;
+    border: #2c2c2c00 solid 4px;
+    border-radius: 10px;
+    text-align: center;
+    padding-top: 1px;
+}
+
+.like-button.liked {
+    border: #f0881896 solid 4px;
 }
 
 .flatpickr-input + input {

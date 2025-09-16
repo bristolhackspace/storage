@@ -70,6 +70,25 @@ class Booking(PkModel):
     description: Mapped[str]
     reminder_sent: Mapped[bool] = mapped_column(server_default=expression.false())
     secret: Mapped[Optional[str]]
+    likes: Mapped[Optional[str]]
 
     slot: Mapped["Slot"] = relationship(back_populates="bookings")
     user: Mapped["User"] = relationship(back_populates="bookings")
+
+    def get_likes(self):
+        likes_list = str(self.likes)
+        if likes_list == "None":
+            return 0
+        else:
+            return len(likes_list.split('|'))
+        
+    def do_i_like(self, user_id):
+        likes_list = str(self.likes)
+        if likes_list == "None":
+            return False
+        else:
+            check_list = likes_list.split('|')
+            for item in check_list:
+                if item == str(user_id):
+                    return True
+            return False

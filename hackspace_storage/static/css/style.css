@@ -534,6 +534,10 @@ Defaulting to 3 for the User bookings*/
     padding-top: 1px;
 }
 
+.like-button:hover {
+    cursor: pointer;
+}
+
 .like-button.liked {
     border: #f0881896 solid 4px;
 }

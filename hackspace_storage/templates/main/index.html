@@ -110,7 +110,7 @@
             const thisID = this.id.split("-")[2]
             const xhttp = new XMLHttpRequest();
             xhttp.onload = function() {
-                if (xhttp.status = 200) {
+                if (xhttp.status == 200) {
                     const response = xhttp.responseText
                     var arrResponse = response.split("|")
                     if (arrResponse[0] = "Success") {
@@ -118,6 +118,9 @@
                         document.getElementById(thisID).classList.toggle("liked");
                         document.getElementById(thisID).innerHTML = arrResponse[2]
                     }
+                }
+                else {
+                    console.log (xhttp.status, xhttp.statusText)
                 }
             }
             {% if g.user %}

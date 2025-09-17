@@ -124,7 +124,7 @@
                 }
             }
             {% if g.user %}
-            xhttp.open("PUT", `/bookings/${thisID}/like/{{ g.user.id }}`, true);
+            xhttp.open("PUT", `/bookings/${thisID}/like`, true);
             xhttp.send()
             {% endif %}
         });

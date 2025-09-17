@@ -338,6 +338,7 @@ Defaulting to 3 for the User bookings*/
     padding: 1px 1rem 1px 1rem;
     background-color: #ffd8b0;
     border-radius: 5px 5px 0 0;
+	text-shadow: 1px 1px 1px #fff;
 }
 
 .card-header > h3 {
@@ -350,10 +351,21 @@ Defaulting to 3 for the User bookings*/
 }
 
 .card-header.free {
-    background-color: #66ff004a;
+    background-color: #66ff008f;
 }
 .card-header.booked {
     background-color: #ff00004a;
+    background-image: linear-gradient(
+      45deg, 
+      rgba(0,0,0,0.14) 25%, 
+      transparent 25%, 
+      transparent 50%, 
+      rgba(0,0,0,0.14) 50%, 
+      rgba(0,0,0,0.14) 75%, 
+      transparent 75%, 
+      transparent
+      );
+    background-size: 50px 50px;
 }
 
 .card-body {

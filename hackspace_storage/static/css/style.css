@@ -339,6 +339,8 @@ Defaulting to 3 for the User bookings*/
     background-color: #ffd8b0;
     border-radius: 5px 5px 0 0;
 	text-shadow: 1px 1px 1px #fff;
+    display: flex;
+    justify-content: space-between;
 }
 
 .card-header > h3 {
@@ -346,8 +348,7 @@ Defaulting to 3 for the User bookings*/
 }
 
 .card-header > h3.float-right {
-    display: flex;
-    float: right;
+    text-align: right;
 }
 
 .card-header.free {

@@ -34,10 +34,13 @@ def logout():
 def finish():
     return render_template("main/close_page_restricted.html")
 
-@bp.route("/bookings/<int:booking_id>/like/<int:user_id>", methods=["PUT"])
+@bp.route("/bookings/<int:booking_id>/like", methods=["PUT"])
 @login_required
-def like_post(booking_id: int, user_id: int):
+def like_post(booking_id: int):
     booking = db.get_or_404(Booking, booking_id)
+    if booking.user == g.user:
+        abort(403, "Can't like your own booking!")
+    user_id = g.user.id
     likes_string = str(booking.likes)
     likes_count = 0
     if likes_string == "None":
@@ -46,7 +49,7 @@ def like_post(booking_id: int, user_id: int):
         check_list = likes_string.split("|")
         for item in check_list:
             if item == str(user_id):
-                abort(403, description="Already liked")
+                abort(403, "Already liked")
 
         likes_count = len(check_list)
         booking.likes = likes_string + "|" + str(user_id)

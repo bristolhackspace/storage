@@ -31,6 +31,9 @@ def create_app(test_config=None):
     except OSError:
         pass
 
+    app.jinja_env.trim_blocks = True
+    app.jinja_env.lstrip_blocks = True
+
     register_extensions(app)
     register_blueprints(app)
     configure_logger(app)

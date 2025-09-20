@@ -54,5 +54,5 @@ def send_smtp_email(sender: str, receiver: str, text: str, html: str|None, subje
         server.sendmail(sender, receiver, message.as_string())
 
 
-def send_logger_email(sender: str, receiver: str, text: str, html: str|None):
+def send_logger_email(sender: str, receiver: str, text: str, html: str|None, subject:str):
     current_app.logger.info(f"Sending email from {sender} to {receiver}: {subject} \n\n {text}")

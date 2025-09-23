@@ -54,7 +54,6 @@ class Booking(PkModel):
     expiry: Mapped[datetime.date]
     extensions: Mapped[int] = mapped_column(server_default="0")
     description: Mapped[str]
-    remind_me: Mapped[bool] = mapped_column()
     reminder_sent: Mapped[bool] = mapped_column(server_default=expression.false())
     secret: Mapped[Optional[str]]
 

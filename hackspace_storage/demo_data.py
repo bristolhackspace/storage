@@ -49,8 +49,7 @@ def make_demo_data():
         area.slots[0].bookings.append(Booking(
             user=demo_user,
             expiry=datetime(2025, month, 17),
-            description=f"Cool thingy",
-            remind_me=True
+            description=f"Cool thingy"
         ))
     db.session.commit()
 

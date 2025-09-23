@@ -30,7 +30,7 @@ def can_make_booking(user: User, slot: Slot) -> Tuple[bool, str]:
     return True, ""
 
 
-def try_make_booking(user: User, slot: Slot, description: str, remind_me: bool, expiry: date) -> Booking:
+def try_make_booking(user: User, slot: Slot, description: str, expiry: date) -> Booking:
     can_book, reason = can_make_booking(user, slot)
     if not can_book:
         raise BookingError(reason)
@@ -39,7 +39,6 @@ def try_make_booking(user: User, slot: Slot, description: str, remind_me: bool, 
         user=user,
         expiry=expiry,
         description=description,
-        remind_me=remind_me,
         secret=generate_token()
     )
     slot.bookings.append(booking)

@@ -10,7 +10,6 @@
         {{ form.hidden_tag() }}
         {{ wtf.input(form.description, form) }}
         {{ wtf.input(form.expiry_date, form) }}
-        {{ wtf.input(form.remind_me, form) }}
         <button type="submit" class="extend-button no-icon">Book slot</button>
     </form>
     <a href="{{ url_for('main.index') }}"> &lt; Back</a>

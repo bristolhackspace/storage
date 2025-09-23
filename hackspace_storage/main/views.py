@@ -57,7 +57,6 @@ def book_slot(slot_id: int):
                 'max': (max_booking).strftime("%Y-%m-%d"),
             }
         )
-        remind_me = BooleanField("Send email reminders", default=True)
 
         def validate_expiry_date(self, field: DateField):
             selected: date = field.data  # pyright: ignore[reportAssignmentType]
@@ -72,27 +71,25 @@ def book_slot(slot_id: int):
                 g.user,
                 slot,
                 form.description.data or "",
-                form.remind_me.data,
                 form.expiry_date.data, # pyright: ignore[reportArgumentType]
             )
             flash(f"Booking success", 'success')
 
-            if booking.remind_me:
-                reminder_date = booking.expiry - timedelta(days=slot.area.category.extension_period_days)
-                if reminder_date <= date.today():
-                    # If reminder date is in the past or today then skip sending it
-                    reminder_date = None
-                    booking.reminder_sent = True
-                    db.session.commit()
+            reminder_date = booking.expiry - timedelta(days=slot.area.category.extension_period_days)
+            if reminder_date <= date.today():
+                # If reminder date is in the past or today then skip sending it
+                reminder_date = None
+                booking.reminder_sent = True
+                db.session.commit()
 
-                send_email(
-                    g.user,
-                    "email/slot_booked",
-                    subject="Booking created",
-                    slot=slot,
-                    booking=booking,
-                    reminder_date=reminder_date
-                )
+            send_email(
+                g.user,
+                "email/slot_booked",
+                subject="Booking created",
+                slot=slot,
+                booking=booking,
+                reminder_date=reminder_date
+            )
 
             return redirect(url_for('.index'))
         except BookingError as ex:

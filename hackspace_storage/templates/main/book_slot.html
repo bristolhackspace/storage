@@ -5,6 +5,26 @@
 {% block title %}Book slot{% endblock %}
 
 {% block contents %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<style>
+    .flatpickr-months {
+        background-color: #ffd8b0;
+    }
+    .flatpickr-calendar.arrowTop::before {
+        border-bottom-color: #ffd8b0;
+    }
+    .flatpickr-calendar.arrowTop::after {
+        border-bottom-color: #ffd8b0;
+    }
+    .flatpickr-day:not(.flatpickr-disabled):hover {
+        background: #ffd8b0;
+        border-color: #ffd8b0;
+    }
+    .flatpickr-current-month {
+        padding: 4px 0 0 0;
+    }
+</style>
 <div class="container">
     <form method="POST" action="">
         {{ form.hidden_tag() }}
@@ -15,4 +35,20 @@
     </form>
     <a href="{{ url_for('main.index') }}"> &lt; Back</a>
 </div>
+
+<script type="text/javascript">
+    var elDatePick = document.getElementById("expiry_date")
+    elDatePick.value = ""
+    var config = {
+            minDate: elDatePick.getAttribute("min"),
+            maxDate: elDatePick.getAttribute("max"),
+            altInput: true,
+            altFormat: "d-M-Y",
+            dateFormat: "Y-m-d"
+        }
+    document.addEventListener("DOMContentLoaded", (event) => {
+        flatpickr(elDatePick, config)
+    });
+</script>
+
 {% endblock %}

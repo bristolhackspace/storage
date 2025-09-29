@@ -1,12 +1,19 @@
 import base64
 import hashlib
 import secrets
+from typing import overload
 
 TOKEN_BYTES = 32
 HASH_ALGORITHM = "sha256"
 
 def generate_token() -> str:
     return secrets.token_urlsafe(TOKEN_BYTES)
+
+@overload
+def token_to_id(token: str) -> str: ...
+
+@overload
+def token_to_id(token: None) -> None: ...
 
 def token_to_id(token: str | None) -> str | None:
     if token is None:

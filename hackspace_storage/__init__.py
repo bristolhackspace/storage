@@ -1,3 +1,4 @@
+from datetime import timedelta
 import logging
 import os
 import sys
@@ -15,7 +16,8 @@ def create_app(test_config=None):
         SQLALCHEMY_DATABASE_URI="postgresql+psycopg2://postgres:postgres@localhost:5432/hackspace_storage",
         LOGIN_START_SECRET="dev",
         PORTAL_URL="https://example.com",
-        SENDER_EMAIL="Example <example@example.com>"
+        SENDER_EMAIL="Example <example@example.com>",
+        IDLE_SESSION_LIFETIME=timedelta(minutes=20).total_seconds(),
     )
 
     if test_config is None:

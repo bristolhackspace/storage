@@ -1,14 +1,60 @@
 from datetime import datetime, timedelta, timezone
 from functools import wraps
+import secrets
 import sqlalchemy as sa
 from sqlalchemy.exc import PendingRollbackError
 from sqlalchemy.dialects.postgresql import insert
 from typing import Any
+import uuid
 import jwt
 from flask import Flask, Request, Response, abort, after_this_request, current_app, g, request, session
 
 from hackspace_storage.extensions import db
-from hackspace_storage.models import User
+from hackspace_storage.models import User, Session
+from hackspace_storage.token import generate_token, token_to_id
+
+
+def create_session(user: User, sid: str|None):
+    now = datetime.now(timezone.utc)
+    idle_session_lifetime = timedelta(seconds=current_app.config["IDLE_SESSION_LIFETIME"])
+    expiry = now + idle_session_lifetime
+    secret = generate_token()
+    stmt = insert(Session).values(
+        id=uuid.uuid4(),
+        secret=token_to_id(secret),
+        external_id=sid,
+        user_id=user.id,
+        created=now,
+        expiry=expiry
+    ).on_conflict_do_update(
+        index_elements=[Session.external_id],
+        set_=dict(
+            secret=token_to_id(secret),
+            user_id=user.id,
+            created=now,
+            expiry=expiry,
+        )
+    ).returning(Session)
+
+    orm_stmt = sa.select(Session).from_statement(stmt).execution_options(populate_existing=True)
+    session: Session = db.session.execute(orm_stmt).scalar_one()
+    db.session.commit()
+
+    g.session = session
+    g.user = session.user
+
+    @after_this_request
+    def update_session(response: Response):
+        session_value = f"{session.id.hex}:{secret}"
+        response.set_cookie(
+            "id",
+            session_value,
+            max_age=idle_session_lifetime,
+            secure=current_app.config["SESSION_COOKIE_SECURE"],
+            httponly=current_app.config["SESSION_COOKIE_HTTPONLY"]
+        )
+
+
 
 def init_app(app: Flask):
     @app.before_request
@@ -50,20 +96,37 @@ def init_app(app: Flask):
         user = db.session.execute(orm_stmt).scalar_one()
         db.session.commit()
 
-        session["_user_id"] = user.id
-        g.user = user
+        create_session(user, decoded_token.get("sid"))
 
         return None
 
     @app.before_request
     def login_from_session() -> None:
-        user_id = session.get("_user_id", None)
-        if (user_id is not None) and ('user' not in g):
-            user = db.session.get(User, user_id)
-            if user is None:
-                session.pop("_user_id")
-            else:
-                g.user = user
+        if 'session' in g:
+            return
+
+        session_value = request.cookies.get("id", "").split(":")
+        if len(session_value) != 2:
+            return
+        session_id, secret = session_value
+
+        session = db.session.get(Session, session_id)
+        if not session:
+            return
+        
+        if not secrets.compare_digest(session.secret, token_to_id(secret)):
+            return
+        
+        now = datetime.now(timezone.utc)
+        if now > session.expiry:
+            return
+        
+        g.session = session
+        g.user = session.user
+
+        session.expiry = now + current_app.permanent_session_lifetime
+        db.session.commit()
+
 
 def login_required(f):
     @wraps(f)

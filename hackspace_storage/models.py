@@ -16,7 +16,7 @@ class User(PkModel):
     name: Mapped[str]
 
     bookings: Mapped[list["Booking"]] = relationship(back_populates="user")
-    sessions: Mapped[list["Session"]] = relationship(back_populates="user")
+    logins: Mapped[list["Login"]] = relationship(back_populates="user")
 
     def bookings_per_category(self) -> defaultdict["Category", int]:
         counts = defaultdict(int)
@@ -24,8 +24,8 @@ class User(PkModel):
             counts[booking.slot.area.category] += 1
         return counts
     
-
-class Session(Model):
+# Calling this a Login instead of Session to avoid confusion with Flask's own session API
+class Login(Model):
     id: Mapped[UUID]
     external_id: Mapped[Optional[str]] = mapped_column(unique=True, index=True) # Obtained from the sid claim in the login token
     # We don't just rely on the id as UUID generation isn't guaranteed to use a CSPRNG

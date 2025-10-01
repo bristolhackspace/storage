@@ -3,7 +3,7 @@ from typing import Tuple
 
 from flask import Flask
 
-from hackspace_storage.extensions import db
+from hackspace_storage.database import db
 from hackspace_storage.models import User, Slot, Booking
 from hackspace_storage.token import generate_token
 

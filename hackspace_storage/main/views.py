@@ -11,8 +11,8 @@ from hackspace_storage.booking_rules import BookingError, try_make_booking, exte
 from hackspace_storage.mailer import send_email
 
 from .forms import DeleteConfirmForm
-from hackspace_storage.extensions import db
-from hackspace_storage.login import login_required
+from hackspace_storage.database import db
+from hackspace_storage.login import login_required, login_manager
 from hackspace_storage.models import Area, Slot, User, Booking
 
 bp = Blueprint("main", __name__, url_prefix="/")
@@ -149,3 +149,15 @@ def extend(booking_id: int):
     except BookingError as ex:
         flash(ex.reason, 'error')
     return redirect(url_for('main.index'))
+
+
+@bp.route("/backchannel-logout", methods=["POST"])
+def backchannel_logout():
+    logout_token = request.form.get("logout_token")
+    if logout_token is None:
+        abort(400)
+
+    if not login_manager.process_logout_token(logout_token):
+        abort (400)
+
+    return ""

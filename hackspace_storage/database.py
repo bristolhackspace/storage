@@ -2,10 +2,13 @@ from datetime import datetime, timezone
 import functools
 from zoneinfo import ZoneInfo
 from flask import current_app
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import types
 from sqlalchemy.orm import Mapped, mapped_column
 
-from hackspace_storage.extensions import db
+db = SQLAlchemy()
+migrate = Migrate(db=db)
 
 Model = db.Model
 
@@ -55,7 +58,6 @@ class LocalDateTime(types.TypeDecorator):
         if value is not None:
             zone = local_timezone()
             return value.replace(tzinfo=timezone.utc).astimezone(zone)
-
 
 
 class SpaceSeparatedSet(types.TypeDecorator):

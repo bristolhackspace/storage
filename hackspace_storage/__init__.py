@@ -44,12 +44,12 @@ def create_app(test_config=None):
 
 
 def register_extensions(app: Flask):
-    from .extensions import db, migrate
-    from . import login
+    from .database import db, migrate
+    from .login import login_manager
     from . import booking_rules
     db.init_app(app)
     migrate.init_app(app)
-    login.init_app(app)
+    login_manager.init_app(app)
     booking_rules.init_app(app)
 
 

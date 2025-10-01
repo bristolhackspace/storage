@@ -5,7 +5,7 @@ from datetime import datetime, timezone, timedelta
 import secrets
 import jwt
 
-from hackspace_storage.extensions import db
+from hackspace_storage.database import db
 from hackspace_storage.models import Area, Category, Slot, Booking, User
 
 bp = Blueprint('demo', __name__, cli_group=None)
@@ -56,7 +56,8 @@ def make_demo_data():
 @bp.cli.command("make-login")
 @click.argument("name")
 @click.argument("email")
-def make_login(name, email):
+@click.option('--sid', prompt='Session ID', help='External session ID (used to logout session externally)')
+def make_login(name, email, sid):
     sub = f"demouser {email}"
     # Longer expiry than we'd usually use, but easier for testing
     expiry = datetime.now(timezone.utc) + timedelta(days=1)
@@ -68,5 +69,27 @@ def make_login(name, email):
         "email": email
     }
 
+    if sid:
+        payload["sid"] = sid
+
     token = jwt.encode(payload, current_app.config["LOGIN_START_SECRET"], "HS256")
     print(f"Copy this onto the end of the URL to login: ?login_token={token}")
+
+
+@bp.cli.command("make-logout")
+@click.argument("sid")
+def make_logout_token(sid):
+    now = datetime.now(timezone.utc)
+    expiry = now + timedelta(minutes=30)
+
+    payload = {
+        "exp": int(expiry.timestamp()),
+        "iat": int(now.timestamp()),
+        "sid": sid,
+        "events": {
+            "http://schemas.openid.net/event/backchannel-logout": {}
+        }
+    }
+
+    token = jwt.encode(payload, current_app.config["LOGIN_START_SECRET"], "HS256")
+    print(f"Send a POST request with logout_token={token} to /backchannel-logout")

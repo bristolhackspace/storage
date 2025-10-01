@@ -2,15 +2,14 @@ from datetime import datetime, timedelta, timezone
 from functools import wraps
 import secrets
 import sqlalchemy as sa
-from sqlalchemy.exc import PendingRollbackError
 from sqlalchemy.dialects.postgresql import insert
 from typing import Any
 import uuid
 import jwt
 from flask import Flask, Request, Response, abort, after_this_request, current_app, g, request, session
-from flask_sqlalchemy import SQLAlchemy
 
 from hackspace_storage.models import User, Login
+from hackspace_storage.database import db
 
 
 def _make_timedelta(value: timedelta | int) -> timedelta:
@@ -21,24 +20,23 @@ def _make_timedelta(value: timedelta | int) -> timedelta:
 
 
 class LoginManager:
-    def __init__(self, db: SQLAlchemy):
-        self.db = db
-
     def init_app(self, app: Flask):
-        self.idle_timeout = _make_timedelta(current_app.config.get("LOGIN_IDLE_TIMEOUT", 60*10))
-        self.absolute_timeout = _make_timedelta(current_app.config.get("LOGIN_ABSOLUTE_TIMEOUT", 60*60))
-        self.cookie_name = current_app.config.get("LOGIN_COOKIE_NAME", "id")
-        self.cookie_secure = current_app.config.get("LOGIN_COOKIE_SECURE", False)
-        self.start_secret = current_app.config["LOGIN_START_SECRET"]
+        self.idle_timeout = _make_timedelta(app.config.get("LOGIN_IDLE_TIMEOUT", 60*10))
+        self.absolute_timeout = _make_timedelta(app.config.get("LOGIN_ABSOLUTE_TIMEOUT", 60*60))
+        self.cookie_name = app.config.get("LOGIN_COOKIE_NAME", "id")
+        self.cookie_secure = app.config.get("LOGIN_COOKIE_SECURE", False)
+        self.start_secret = app.config["LOGIN_START_SECRET"]
 
-        @app.before_request
-        def do_login():
-            login_token = request.args.get('login_token')
-            if login_token is not None:
-                self.login_from_token(login_token)
+        app.extensions["login_manager"] = self
+        app.before_request(self._do_login)
 
-            if 'user' not in g:
-                self.login_from_cookie()
+    def _do_login(self):
+        login_token = request.args.get('login_token')
+        if login_token is not None:
+            self.login_from_token(login_token)
+
+        if 'user' not in g:
+            self.login_from_cookie()
 
     def login_from_token(self, login_token: str):
         try:
@@ -83,6 +81,7 @@ class LoginManager:
         now = datetime.now(timezone.utc)
         expiry = now + self.idle_timeout
         secret = secrets.token_urlsafe()
+        # If there's an existing session with the same sid then we'll re-use that with a new secret
         stmt = insert(Login).values(
             id=uuid.uuid4(),
             secret=secret,
@@ -117,34 +116,72 @@ class LoginManager:
                 httponly=True
             )
 
+            return response
+
     def login_from_cookie(self):
         now = datetime.now(timezone.utc)
 
         login_cookie = request.cookies.get(self.cookie_name)
         if login_cookie is None:
             return
-        
+
         login_cookie = login_cookie.split(":")
         if len(login_cookie) != 2:
             return
-        
+
         login_id, secret = login_cookie
         login = db.session.get(Login, login_id)
         if login is None:
             return
-        
-        if now > login.expiry:
+
+        # Check for idle or absolute session timeouts
+        if now > login.expiry or now > (login.created + self.absolute_timeout):
             db.session.delete(login)
             db.session.commit()
             return
-        
+
+        # Check login secret matches
         if not secrets.compare_digest(secret, login.secret):
             return
 
         g.user = login.user
         g.login = login
 
+        # Reset the session expiry for every request
         login.expiry = now + self.idle_timeout
+        db.session.commit()
+
+    def process_logout_token(self, logout_token: str) -> bool:
+        try:
+            decoded_token: dict[str, Any] = jwt.decode(
+                logout_token,
+                self.start_secret,
+                algorithms="HS256",
+                options=dict(require=["exp"])
+            )
+        except jwt.PyJWTError as ex:
+            current_app.logger.warning(f"Error decoding logout token {ex}")
+            return False
+        
+        events = decoded_token.get("events", {})
+        if "http://schemas.openid.net/event/backchannel-logout" not in events:
+            return False
+        
+        # nonce is forbidden in the logout token 
+        if "nonce" in decoded_token:
+            return False
+        
+        sid = decoded_token.get("sid")
+        if not sid:
+            return False
+        
+        self.delete_login(sid)
+
+        return True
+    
+    def delete_login(self, sid: str):
+        query = sa.delete(Login).where(Login.external_id==sid)
+        db.session.execute(query)
         db.session.commit()
 
 
@@ -155,3 +192,6 @@ def login_required(f):
             abort(403)
         return f(*args, **kwargs)
     return decorated_function
+
+
+login_manager = LoginManager()

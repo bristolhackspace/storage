@@ -49,6 +49,10 @@ class LoginManager:
         except jwt.PyJWTError as ex:
             current_app.logger.warning(f"Error decoding login token {ex}")
             return None
+
+        # Protection against using a logout token as a login token
+        if "nonce" not in decoded_token:
+            return None
         
         user = self.create_user_from_id_token(decoded_token)
         self.create_login(user, decoded_token.get("sid"))

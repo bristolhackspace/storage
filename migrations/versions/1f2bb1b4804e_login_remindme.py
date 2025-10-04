@@ -7,6 +7,7 @@ Create Date: 2025-10-04 15:10:48.531510
 """
 from alembic import op
 import sqlalchemy as sa
+import hackspace_storage
 
 
 # revision identifiers, used by Alembic.

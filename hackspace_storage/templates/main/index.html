@@ -62,7 +62,7 @@
                             <p>{{ this_booking.description }}</p>
                     </div>
                     <div class="card-footer">
-                            {% if g.user.id %}
+                            {% if g.user %}
                             <div class="like-button {{ 'liked' if this_booking.do_i_like(g.user.id) else '' }}" id="like-button-{{ this_booking.id }}">{{ this_booking.get_likes() }}</div>
                             {% else %}
                             <div class="like-button" id="like-button-{{ this_booking.id }}">{{ this_booking.get_likes() }}</div>

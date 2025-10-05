@@ -8,7 +8,7 @@
 
 {% block contents %}
 <div class="container">
-    <h1>Cancel booking - {{ slot.name }}</h1>
+    <h1>Cancel booking - {{slot.area.name}} {{ slot.name }}</h1>
     <p>Description:</p>
     <p>{{ booking.description }}</p>
     <p>Are you sure you want to cancel this booking?</p>

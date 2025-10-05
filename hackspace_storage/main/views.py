@@ -19,6 +19,7 @@ bp = Blueprint("main", __name__, url_prefix="/")
 
 
 @bp.route("/")
+@login_required
 def index():
     area_query = sa.select(Area).join(Area.slots).order_by(Area.name, Slot.name)
     areas = db.session.scalars(area_query).unique().all()

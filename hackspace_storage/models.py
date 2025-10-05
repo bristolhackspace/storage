@@ -51,7 +51,7 @@ class Area(PkModel):
     category_id: Mapped[int] = mapped_column(ForeignKey("category.id"))
     column_count: Mapped[int]
 
-    slots: Mapped[list["Slot"]] = relationship(back_populates="area")
+    slots: Mapped[list["Slot"]] = relationship(back_populates="area", order_by="Slot.name")
     category: Mapped["Category"] = relationship(back_populates="areas")
 
 class Slot(PkModel):

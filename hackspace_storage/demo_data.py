@@ -66,7 +66,8 @@ def make_login(name, email, sid):
         "exp": int(expiry.timestamp()),
         "sub": sub,
         "name": name,
-        "email": email
+        "email": email,
+        "nonce": secrets.token_urlsafe()
     }
 
     if sid:

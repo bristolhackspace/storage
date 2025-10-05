@@ -35,6 +35,8 @@ def send_smtp_email(sender: str, receiver: str, text: str, html: str|None, subje
     username = current_app.config["SMTP_USERNAME"]
     password = current_app.config["SMTP_PASSWORD"]
 
+    extra_headers: dict[str, str] = current_app.config.get("SMTP_HEADERS", {})
+
     with smtplib.SMTP(host, port) as server:
         server.ehlo()
         server.starttls(context=context)
@@ -45,6 +47,9 @@ def send_smtp_email(sender: str, receiver: str, text: str, html: str|None, subje
         message["Subject"] = subject
         message["From"] = sender
         message["To"] = receiver
+
+        for k, v in extra_headers.items():
+            message[k] = v
 
         message.attach(MIMEText(text, "plain"))
 

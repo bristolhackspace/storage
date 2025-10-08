@@ -3,7 +3,7 @@
 {% block title %}Home{% endblock %}
 
 {% block contents %}
-<div class="container">
+<div class="container storage">
 
     {% if g.user %}
     <h1>Hi, {{ g.user.name }}.</h1>
@@ -22,7 +22,7 @@
                     </div>
                     <div class="card-body">
                             <p>{{ booking.description }}</p>
-                            <p> Expires: {{ booking.expiry.strftime("%d-%b-%Y") }}</p>
+                            <p> Expires: {{ booking.expiry.strftime("%d %b %Y") }}</p>
                     </div>
                     <div class="card-footer-user">
                         <a class="cancel-button" href="{{ url_for('main.free_booking', booking_id=booking.id) }}">Cancel</a>
@@ -62,7 +62,7 @@
                             <p>{{ this_booking.description }}</p>
                     </div>
                     <div class="card-footer">
-                            <p> Expires: {{ this_booking.expiry.strftime("%d-%b-%Y") }}</p>
+                            <p> Expires: {{ this_booking.expiry.strftime("%d %b %Y") }}</p>
                     </div>
                     {% else %}
                     <div class="card-body">

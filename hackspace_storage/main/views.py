@@ -83,7 +83,7 @@ def book_slot(slot_id: int):
                 booking.reminder_sent = True
                 db.session.commit()
             else:
-                reminder_date=reminder_date.strftime("%d-%b-%Y")
+                reminder_date=reminder_date.strftime("%d %b %Y")
 
             send_email(
                 g.user,

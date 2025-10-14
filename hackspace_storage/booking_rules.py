@@ -1,10 +1,10 @@
 from datetime import date, timedelta
+from flask import Flask
+import sqlalchemy as sa
 from typing import Tuple
 
-from flask import Flask
-
 from hackspace_storage.database import db
-from hackspace_storage.models import User, Slot, Booking
+from hackspace_storage.models import User, Slot
 from hackspace_storage.token import generate_token
 
 
@@ -22,35 +22,48 @@ class BookingError(Exception):
 
 
 def can_make_booking(user: User, slot: Slot) -> Tuple[bool, str]:
-    if len(slot.bookings) > 0:
+    if slot.has_booking:
         return False, "slot already booked"
     category = slot.area.category
     if user.bookings_per_category()[category] >= category.max_bookings:
         return False, "Maximum allowed bookings used"
+    #TODO: Add check for re-booking within cool-off period
     return True, ""
 
 
-def try_make_booking(user: User, slot: Slot, description: str, expiry: date) -> Booking:
+def try_make_booking(user: User, slot: Slot, description: str, expiry: date):
     can_book, reason = can_make_booking(user, slot)
     if not can_book:
         raise BookingError(reason)
+    
+    now = date.today()
 
-    booking = Booking(
-        user=user,
-        expiry=expiry,
-        description=description,
-        secret=generate_token()
+    booking_secret = generate_token()
+
+    # We do an extra has_booking check to avoid any theoretical race conditions if somebody else booked in the meantime
+    stmt = sa.update(Slot).where(Slot.id==slot.id, Slot.has_booking==False).values(
+        booked_by=user,
+        booking_secret=booking_secret,
+        booked_at=now,
+        booking_expiry=expiry,
+        contents_description=description,
+        reminder_email_sent=False,
+        expiry_email_sent=False,
     )
-    slot.bookings.append(booking)
+
+    db.session.execute(stmt)
     db.session.commit()
 
-    return booking
+    # If a race condition happened then the slot won't get updated
+    if slot.booking_secret != booking_secret:
+        raise BookingError("slot already booked")
 
-def can_extend_booking(booking: Booking):
-    category = booking.slot.area.category
+
+def can_extend_booking(slot: Slot):
+    category = slot.area.category
 
     today = date.today()
-    delta = booking.expiry - today
+    delta = slot.booking_expiry - today
 
     extension_period = category.extension_period_days
 

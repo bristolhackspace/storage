@@ -3,8 +3,10 @@ from collections import defaultdict
 import datetime
 from typing import Any, Optional
 from sqlalchemy import ForeignKey
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.sql import func, expression
+from sqlalchemy.sql import func, expression, or_
+from sqlalchemy.sql.functions import current_date
 from uuid import UUID
 
 from hackspace_storage.database import PkModel, Model, UTCDateTime
@@ -15,13 +17,14 @@ class User(PkModel):
     email: Mapped[str]
     name: Mapped[str]
 
-    bookings: Mapped[list["Booking"]] = relationship(back_populates="user")
+    booked_slots: Mapped[list["Slot"]] = relationship(back_populates="booked_by")
     logins: Mapped[list["Login"]] = relationship(back_populates="user")
 
     def bookings_per_category(self) -> defaultdict["Category", int]:
         counts = defaultdict(int)
-        for booking in self.bookings:
-            counts[booking.slot.area.category] += 1
+        for slot in self.booked_slots:
+            if slot.has_booking:
+                counts[slot.area.category] += 1
         return counts
     
 # Calling this a Login instead of Session to avoid confusion with Flask's own session API
@@ -59,17 +62,34 @@ class Slot(PkModel):
     area_id: Mapped[int] = mapped_column(ForeignKey("area.id"))
 
     area: Mapped["Area"] = relationship(back_populates="slots")
-    # Data model allows multiple bookings, howeve application will restrict this
-    bookings: Mapped[list["Booking"]] = relationship(back_populates="slot")
 
-class Booking(PkModel):
-    slot_id: Mapped[int] = mapped_column(ForeignKey("slot.id"))
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
-    expiry: Mapped[datetime.date]
-    extensions: Mapped[int] = mapped_column(server_default="0")
-    description: Mapped[str]
-    reminder_sent: Mapped[bool] = mapped_column(server_default=expression.false())
-    secret: Mapped[Optional[str]]
+    booked_by_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("user.id"))
+    # This field will double as a flag indicating if a booking has been manually cancelled.
+    # We need to maintain the other fields for re-booking checks
+    booking_secret: Mapped[Optional[str]]
+    booked_at: Mapped[datetime.date] = mapped_column(server_default=current_date())
+    booking_expiry: Mapped[datetime.date] = mapped_column(server_default=current_date())
+    contents_description: Mapped[Optional[str]]
+    reminder_email_sent: Mapped[bool] = mapped_column(server_default=expression.false())
+    expiry_email_sent: Mapped[bool] = mapped_column(server_default=expression.false())
 
-    slot: Mapped["Slot"] = relationship(back_populates="bookings")
-    user: Mapped["User"] = relationship(back_populates="bookings")
+
+    booked_by: Mapped[Optional["User"]] = relationship(back_populates="booked_slots")
+
+    @hybrid_property
+    def has_booking(self) -> bool: # pyright: ignore[reportRedeclaration]
+        if self.booking_secret is None:
+            return False
+        if datetime.date.today() > self.booking_expiry:
+            return False
+        return True
+
+    @has_booking.expression
+    def has_booking(cls):
+        return ~or_(
+            Slot.booking_secret==None,
+            current_date() > Slot.booking_expiry
+        )
+    
+    def cancel_booking(self):
+        self.booking_secret = None

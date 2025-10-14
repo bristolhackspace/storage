@@ -4,6 +4,7 @@ import secrets
 from flask_wtf import FlaskForm
 import sqlalchemy as sa
 from sqlalchemy.orm import joinedload
+import typing
 from wtforms import BooleanField, DateField, TextAreaField, ValidationError
 from wtforms.validators import DataRequired, InputRequired
 
@@ -13,7 +14,7 @@ from hackspace_storage.mailer import send_email
 from .forms import DeleteConfirmForm
 from hackspace_storage.database import db
 from hackspace_storage.login import login_required, login_manager
-from hackspace_storage.models import Area, Slot, User, Booking
+from hackspace_storage.models import Area, Slot, User
 
 bp = Blueprint("main", __name__, url_prefix="/")
 
@@ -43,7 +44,6 @@ def book_slot(slot_id: int):
     today = date.today()
     max_booking= today+timedelta(days=slot.area.category.initial_duration_days)
 
-
     class BookingForm(FlaskForm):
         description = TextAreaField(
             'Project description',
@@ -68,7 +68,7 @@ def book_slot(slot_id: int):
 
     if form.validate_on_submit():
         try:
-            booking = try_make_booking(
+            try_make_booking(
                 g.user,
                 slot,
                 form.description.data or "",
@@ -76,11 +76,12 @@ def book_slot(slot_id: int):
             )
             flash(f"Booking success", 'success')
 
-            reminder_date = booking.expiry - timedelta(days=slot.area.category.extension_period_days)
+            booking_expiry = typing.cast(date, slot.booking_expiry)
+            reminder_date = booking_expiry - timedelta(days=slot.area.category.extension_period_days)
             if reminder_date <= date.today():
                 # If reminder date is in the past or today then skip sending it
                 reminder_date = None
-                booking.reminder_sent = True
+                slot.reminder_email_sent = True
                 db.session.commit()
             else:
                 reminder_date=reminder_date.strftime("%d-%b-%Y")
@@ -90,7 +91,6 @@ def book_slot(slot_id: int):
                 "email/slot_booked",
                 subject="Booking created",
                 slot=slot,
-                booking=booking,
                 reminder_date=reminder_date
             )
 
@@ -118,13 +118,13 @@ def free_booking(booking_id: int):
     return render_template("main/delete_booking.html", form=form, booking=booking)
 
 
-@bp.route("/bookings/<int:booking_id>/free-email", methods=["GET", "POST"])
-def free_booking_email(booking_id: int):
-    booking = db.session.get(Booking, booking_id)
+@bp.route("/bookings/<int:slot_id>/free-email", methods=["GET", "POST"])
+def free_slot_email(slot_id: int):
+    slot = db.session.get(Slot, slot_id)
 
-    if (not booking
-        or not booking.secret
-        or not secrets.compare_digest(booking.secret, request.args.get("token", ""))
+    if (not slot
+        or not slot.booking_secret
+        or not secrets.compare_digest(slot.booking_secret, request.args.get("token", ""))
         ):
         abort(403, description="Booking link expired or invalid.")
 

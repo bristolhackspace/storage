@@ -5,7 +5,7 @@ from typing import Any, Optional
 from sqlalchemy import ForeignKey
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.sql import func, expression, or_
+from sqlalchemy.sql import func, expression, and_
 from sqlalchemy.sql.functions import current_date
 from uuid import UUID
 
@@ -86,10 +86,10 @@ class Slot(PkModel):
 
     @has_booking.expression
     def has_booking(cls):
-        return ~or_(
-            Slot.booking_secret==None,
-            current_date() > Slot.booking_expiry
+        return and_(
+            Slot.booking_secret!=None,
+            current_date() <= Slot.booking_expiry
         )
     
-    def cancel_booking(self):
+    def free_booking(self):
         self.booking_secret = None

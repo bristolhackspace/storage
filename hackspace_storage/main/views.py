@@ -39,119 +39,118 @@ def finish():
 @bp.route("/slots/<int:slot_id>/book", methods=["GET", "POST"])
 @login_required
 def book_slot(slot_id: int):
-    slot = db.get_or_404(Slot, slot_id)
+    with db.session.begin():
+        slot = db.get_or_404(Slot, slot_id, with_for_update=True)
 
-    today = date.today()
-    max_booking= today+timedelta(days=slot.area.category.initial_duration_days)
+        today = date.today()
+        max_booking= today+timedelta(days=slot.area.category.initial_duration_days)
 
-    class BookingForm(FlaskForm):
-        description = TextAreaField(
-            'Project description',
-            validators=[DataRequired()],
-            render_kw={"placeholder": "Brief description of project you are working on"}
-        )
-        expiry_date = DateField(
-            "Expiry date",
-            validators=[InputRequired()],
-            render_kw={
-                'min': (today+timedelta(days=1)).strftime("%Y-%m-%d"),
-                'max': (max_booking).strftime("%Y-%m-%d"),
-            }
-        )
-
-        def validate_expiry_date(self, field: DateField):
-            selected: date = field.data  # pyright: ignore[reportAssignmentType]
-            if selected < today+timedelta(days=1) or selected > max_booking:
-                raise ValidationError("Expiry outside allowable range")
-
-    form = BookingForm(expiry_date=max_booking)
-
-    if form.validate_on_submit():
-        try:
-            try_make_booking(
-                g.user,
-                slot,
-                form.description.data or "",
-                form.expiry_date.data, # pyright: ignore[reportArgumentType]
+        class BookingForm(FlaskForm):
+            description = TextAreaField(
+                'Project description',
+                validators=[DataRequired()],
+                render_kw={"placeholder": "Brief description of project you are working on"}
             )
-            flash(f"Booking success", 'success')
-
-            booking_expiry = typing.cast(date, slot.booking_expiry)
-            reminder_date = booking_expiry - timedelta(days=slot.area.category.extension_period_days)
-            if reminder_date <= date.today():
-                # If reminder date is in the past or today then skip sending it
-                reminder_date = None
-                slot.reminder_email_sent = True
-                db.session.commit()
-            else:
-                reminder_date=reminder_date.strftime("%d-%b-%Y")
-
-            send_email(
-                g.user,
-                "email/slot_booked",
-                subject="Booking created",
-                slot=slot,
-                reminder_date=reminder_date
+            expiry_date = DateField(
+                "Expiry date",
+                validators=[InputRequired()],
+                render_kw={
+                    'min': (today+timedelta(days=1)).strftime("%Y-%m-%d"),
+                    'max': (max_booking).strftime("%Y-%m-%d"),
+                }
             )
 
-            return redirect(url_for('.index'))
-        except BookingError as ex:
-            flash(f"Unable to make booking: {ex.reason}", 'error')
+            def validate_expiry_date(self, field: DateField):
+                selected: date = field.data  # pyright: ignore[reportAssignmentType]
+                if selected < today+timedelta(days=1) or selected > max_booking:
+                    raise ValidationError("Expiry outside allowable range")
 
-    return render_template("main/book_slot.html", form=form, slot=slot)
+        form = BookingForm(expiry_date=max_booking)
 
-@bp.route("/bookings/<int:booking_id>/free", methods=["GET", "POST"])
+        if form.validate_on_submit():
+            try:
+                try_make_booking(
+                    g.user,
+                    slot,
+                    form.description.data or "",
+                    form.expiry_date.data, # pyright: ignore[reportArgumentType]
+                )
+                flash(f"Booking success", 'success')
+
+                booking_expiry = typing.cast(date, slot.booking_expiry)
+                reminder_date = booking_expiry - timedelta(days=slot.area.category.extension_period_days)
+                if reminder_date <= today:
+                    # If reminder date is in the past or today then skip sending it
+                    reminder_date = None
+                    slot.reminder_email_sent = True
+                else:
+                    reminder_date=reminder_date.strftime("%d-%b-%Y")
+
+                send_email(
+                    g.user,
+                    "email/slot_booked",
+                    subject="Booking created",
+                    slot=slot,
+                    reminder_date=reminder_date
+                )
+
+                return redirect(url_for('.index'))
+            except BookingError as ex:
+                flash(f"Unable to make booking: {ex.reason}", 'error')
+
+        return render_template("main/book_slot.html", form=form, slot=slot)
+
+@bp.route("/bookings/<int:slot_id>/free", methods=["GET", "POST"])
 @login_required
-def free_booking(booking_id: int):
-    booking = db.get_or_404(Booking, booking_id)
-    if booking.user != g.user:
-        abort(403)
+def free_booking(slot_id: int):
+    with db.session.begin():
+        slot = db.get_or_404(Slot, slot_id, with_for_update=True)
+        if slot.booked_by != g.user:
+            abort(403)
 
-    form = DeleteConfirmForm()
+        form = DeleteConfirmForm()
 
-    if form.validate_on_submit():
-        db.session.delete(booking)
-        db.session.commit()
-        flash("Booking deleted", "success")
-        return redirect(url_for(".index"))
+        if form.validate_on_submit():
+            slot.free_booking()
+            flash("Booking deleted", "success")
+            return redirect(url_for(".index"))
 
-    return render_template("main/delete_booking.html", form=form, booking=booking)
+        return render_template("main/delete_booking.html", form=form, slot=slot)
 
 
 @bp.route("/bookings/<int:slot_id>/free-email", methods=["GET", "POST"])
 def free_slot_email(slot_id: int):
-    slot = db.session.get(Slot, slot_id)
+    with db.session.begin():
+        slot = db.session.get(Slot, slot_id, with_for_update=True)
 
-    if (not slot
-        or not slot.booking_secret
-        or not secrets.compare_digest(slot.booking_secret, request.args.get("token", ""))
-        ):
-        abort(403, description="Booking link expired or invalid.")
+        if (not slot
+            or not slot.booking_secret
+            or not secrets.compare_digest(slot.booking_secret, request.args.get("token", ""))
+            ):
+            abort(403, description="Booking link expired or invalid.")
 
-    form = DeleteConfirmForm()
+        form = DeleteConfirmForm()
 
-    if form.validate_on_submit():
-        db.session.delete(booking)
-        db.session.commit()
-        flash("Booking deleted", "success")
-        return redirect(url_for(".finish"))
+        if form.validate_on_submit():
+            slot.free_booking()
+            flash("Booking deleted", "success")
+            return redirect(url_for(".finish"))
 
-    return render_template("main/delete_booking_restricted.html", form=form, booking=booking)
+        return render_template("main/delete_booking_restricted.html", form=form, slot=slot)
 
 
-@bp.route("/bookings/<int:booking_id>/extend")
+@bp.route("/bookings/<int:slot_id>/extend")
 @login_required
-def extend(booking_id: int):
-    booking = db.get_or_404(Booking, booking_id)
-    if booking.user != g.user:
-        abort(403)
+def extend(slot_id: int):
+    with db.session.begin():
+        slot = db.get_or_404(Slot, slot_id, with_for_update=True)
 
-    try:
-        extend_booking(booking)
-        flash("Extension success", 'success')
-    except BookingError as ex:
-        flash(ex.reason, 'error')
-    return redirect(url_for('main.index'))
+        try:
+            extend_booking(slot, g.user)
+            flash("Extension success", 'success')
+        except BookingError as ex:
+            flash(ex.reason, 'error')
+        return redirect(url_for('main.index'))
 
 
 @bp.route("/backchannel-logout", methods=["POST"])

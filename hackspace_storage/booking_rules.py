@@ -32,6 +32,7 @@ def can_make_booking(user: User, slot: Slot) -> Tuple[bool, str]:
 
 
 def try_make_booking(user: User, slot: Slot, description: str, expiry: date):
+    """Try to book a slot. The slot must be obtained using the with_for_update option"""
     can_book, reason = can_make_booking(user, slot)
     if not can_book:
         raise BookingError(reason)
@@ -40,26 +41,19 @@ def try_make_booking(user: User, slot: Slot, description: str, expiry: date):
 
     booking_secret = generate_token()
 
-    # We do an extra has_booking check to avoid any theoretical race conditions if somebody else booked in the meantime
-    stmt = sa.update(Slot).where(Slot.id==slot.id, Slot.has_booking==False).values(
-        booked_by=user,
-        booking_secret=booking_secret,
-        booked_at=now,
-        booking_expiry=expiry,
-        contents_description=description,
-        reminder_email_sent=False,
-        expiry_email_sent=False,
-    )
-
-    db.session.execute(stmt)
-    db.session.commit()
-
-    # If a race condition happened then the slot won't get updated
-    if slot.booking_secret != booking_secret:
-        raise BookingError("slot already booked")
+    slot.booked_by=user
+    slot.booking_secret=booking_secret
+    slot.booked_at=now
+    slot.booking_expiry=expiry
+    slot.contents_description=description
+    slot.reminder_email_sent=False
+    slot.expiry_email_sent=False
 
 
-def can_extend_booking(slot: Slot):
+def can_extend_booking(slot: Slot, user: User):
+    if slot.booked_by != user:
+        return False, "Cannot extend booking. Slot is now booked by someone else."
+
     category = slot.area.category
 
     today = date.today()
@@ -72,13 +66,12 @@ def can_extend_booking(slot: Slot):
     return True, ""
 
 
-def extend_booking(booking: Booking):
-    can_extend, reason = can_extend_booking(booking)
+def extend_booking(slot: Slot, user: User):
+    """Try to extend a booking. The slot must be obtained using the with_for_update option"""
+    can_extend, reason = can_extend_booking(slot, user)
     if not can_extend:
         raise BookingError(reason)
+    
+    category = slot.area.category
 
-    category = booking.slot.area.category
-
-    booking.expiry += timedelta(days=category.extension_duration_days)
-    booking.extensions += 1
-    db.session.commit()
+    slot.booking_expiry += timedelta(days=category.extension_duration_days)

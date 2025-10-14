@@ -3,8 +3,10 @@ from collections import defaultdict
 import datetime
 from typing import Any, Optional
 from sqlalchemy import ForeignKey
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func, expression
+from sqlalchemy.sql.functions import current_date
 from uuid import UUID
 
 from hackspace_storage.database import PkModel, Model, UTCDateTime
@@ -57,19 +59,37 @@ class Area(PkModel):
 class Slot(PkModel):
     name: Mapped[str]
     area_id: Mapped[int] = mapped_column(ForeignKey("area.id"))
+    current_booking_id: Mapped[Optional[int]] = mapped_column(ForeignKey("booking.id"))
 
     area: Mapped["Area"] = relationship(back_populates="slots")
-    # Data model allows multiple bookings, howeve application will restrict this
-    bookings: Mapped[list["Booking"]] = relationship(back_populates="slot")
+
+    current_booking: Mapped[Optional["Booking"]] = relationship(back_populates="slot")
+
+    @hybrid_property
+    def has_active_booking(self):
+        return self.current_booking and self.current_booking.is_active
+    
+    @has_active_booking.inplace.expression
+    def _has_active_booking(cls):
+        return expression.and_(Slot.current_booking!=None, Slot.current_booking.is_active==True)
 
 class Booking(PkModel):
-    slot_id: Mapped[int] = mapped_column(ForeignKey("slot.id"))
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    created: Mapped[datetime.date] = mapped_column(server_default=current_date())
     expiry: Mapped[datetime.date]
     extensions: Mapped[int] = mapped_column(server_default="0")
     description: Mapped[str]
     reminder_sent: Mapped[bool] = mapped_column(server_default=expression.false())
     secret: Mapped[Optional[str]]
 
-    slot: Mapped["Slot"] = relationship(back_populates="bookings")
+    slot: Mapped[Optional["Slot"]] = relationship(back_populates="current_booking", uselist=False)
     user: Mapped["User"] = relationship(back_populates="bookings")
+
+    @hybrid_property
+    def is_active(self):
+        return datetime.date.today() < self.expiry
+    
+    @is_active.inplace.expression
+    @classmethod
+    def _is_active(cls):
+        return current_date() < cls.expiry

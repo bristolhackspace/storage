@@ -1,0 +1,5 @@
+Hello {{user.name}},
+
+This is a reminder that your slot {{slot.area.name}} {{slot.name}} will expire on {{booking.expiry.strftime("%d-%b-%Y")}}. You can extend this booking in-person if required.
+
+If you want to cancel this booking you can do so at the Hackspace, or remotely using this link: {{ url_for('main.free_booking_email', booking_id=booking.id, token=booking.secret, _external=True) }}.

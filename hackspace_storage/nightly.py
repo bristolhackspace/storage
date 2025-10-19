@@ -22,7 +22,7 @@ def nightly(dry_run: bool):
     for booking in bookings:
         if can_extend_booking(booking) and booking.reminder_sent == False:
             if dry_run:
-                print(f"Expiry reminder for booking {booking.description} with expiry {booking.expiry} from slot {booking.slot.name}")
+                print(f"Expiry reminder for booking {booking.description} with expiry {booking.expiry} from slot {booking.slot.name}. Booked by {booking.user.name}")
             else:
                 pass
                 # booking.reminder_sent = True
@@ -38,7 +38,7 @@ def nightly(dry_run: bool):
 
         if today > booking.expiry:
             if dry_run:
-                print(f"Delete booking {booking.description} with expiry {booking.expiry} from slot {booking.slot.name}")
+                print(f"Delete booking {booking.description} with expiry {booking.expiry} from slot {booking.slot.name}. Booked by {booking.user.name}")
             else:
                 pass
                 # db.session.delete(booking)

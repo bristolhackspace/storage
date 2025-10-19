@@ -57,8 +57,9 @@ def register_blueprints(app: Flask):
     app.register_blueprint(main.views.bp)
 
     # This provides no pages, but some CLI commands
-    from hackspace_storage import demo_data
+    from hackspace_storage import demo_data, nightly
     app.register_blueprint(demo_data.bp)
+    app.register_blueprint(nightly.bp)
 
 def configure_logger(app):
     """Configure loggers."""

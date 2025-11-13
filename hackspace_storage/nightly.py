@@ -20,7 +20,7 @@ def nightly(dry_run: bool):
     today = date.today()
 
     for booking in bookings:
-        if can_extend_booking(booking) and booking.reminder_sent == False:
+        if can_extend_booking(booking)[0] and booking.reminder_sent == False:
             if dry_run:
                 print(f"Expiry reminder for booking {booking.description} with expiry {booking.expiry} from slot {booking.slot.name}. Booked by {booking.user.name}")
             else:

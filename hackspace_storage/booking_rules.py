@@ -49,13 +49,12 @@ def try_make_booking(user: User, slot: Slot, description: str, expiry: date) -> 
 def can_extend_booking(booking: Booking):
     category = booking.slot.area.category
 
-    today = date.today()
-    delta = booking.expiry - today
-
     extension_period = category.extension_period_days
 
-    if delta.days >= extension_period:
+    reminder_date = booking.expiry - timedelta(days=extension_period)
+    if reminder_date > date.today():
         return False, f"Can only extend within the last {extension_period} days"
+
     return True, ""
 
 

@@ -11,6 +11,7 @@
     "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
     --header-font: "ocr-a-extended", sans-serif;
     --grid-maxWidth: 100rem;
+    --grid-storageWidth: 140rem;
     --grid-gutter: 2rem;
     --col-gap: 0.8rem;
     --row-gap: 1.0rem;
@@ -112,6 +113,10 @@ dd {
     margin: 0 auto;
     width: 96%;
     padding: 0 calc(var(--grid-gutter) / 2);
+}
+
+.container.storage {
+    max-width: var(--grid-storageWidth);
 }
 
 .navbar {

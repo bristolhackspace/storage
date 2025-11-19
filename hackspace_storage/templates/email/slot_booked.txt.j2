@@ -1,9 +1,9 @@
 Hello {{user.name}},
 
 {% if reminder_date %}
-This is an email to confirm you have booked slot {{slot.area.name}} {{slot.name}}. This slot will expire on {{booking.expiry.strftime("%d-%b-%Y")}} and we will send an expiry reminder on {{reminder_date}}. You will be able to extend the booking in-person on this date.
+This is an email to confirm you have booked slot {{slot.area.name}} {{slot.name}}. This slot will expire on {{booking.expiry.strftime("%d %b %Y")}} and we will send an expiry reminder on {{reminder_date}}. You will be able to extend the booking in-person on this date.
 {% else %}
-This is an email to confirm you have booked slot {{slot.area.name}} {{slot.name}}. This slot will expire on {{booking.expiry.strftime("%d-%b-%Y")}}. You can extend this booking in-person if required.
+This is an email to confirm you have booked slot {{slot.area.name}} {{slot.name}}. This slot will expire on {{booking.expiry.strftime("%d %b %Y")}}. You can extend this booking in-person if required.
 {% endif %}
 
 If you want to cancel this booking you can do so at the Hackspace, or remotely using this link: {{ url_for('main.free_booking_email', booking_id=booking.id, token=booking.secret, _external=True) }}.
